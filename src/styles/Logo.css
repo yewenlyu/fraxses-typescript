@@ -1,0 +1,35 @@
+.Logo {
+  max-width: fit-content;
+  float: left;
+}
+
+.Logo-icon-box {
+  float: left;
+}
+
+.Logo-icon {
+  height: 40px;
+  pointer-events: none;
+}
+
+.Logo-title {
+  float: left;
+  font-weight: bold;
+  font-size: 20px;
+  color: #61dafb;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .Logo-icon {
+    animation: Logo-icon-spin infinite 20s linear;
+  }
+}
+
+@keyframes Logo-icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
