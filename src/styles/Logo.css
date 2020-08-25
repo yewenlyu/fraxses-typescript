@@ -8,7 +8,9 @@
 }
 
 .Logo-icon {
+  position: relative;
   height: 40px;
+  bottom: 1px;
   pointer-events: none;
 }
 
