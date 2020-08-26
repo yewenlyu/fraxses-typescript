@@ -1,0 +1,12 @@
+.UserDashboard {
+  flex: auto;
+  height: calc(100% - 64px);
+}
+
+.UserDashboard .ant-layout-sider {
+  height: 78vh;
+}
+
+.site-layout-background {
+  background: white;
+}

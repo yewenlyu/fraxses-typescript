@@ -60,7 +60,7 @@ class UserSignin extends React.Component<PropsType> {
             />
           </Form.Item>
           <Form.Item>
-            <Form.Item name="remember" noStyle>
+            <Form.Item name="remember" valuePropName="unchecked" noStyle>
               <Checkbox>
                 {this.props.language === 'en-us' ? 'Remember me' : '保存登录信息'}
               </Checkbox>
