@@ -4,6 +4,7 @@ import { Layout } from 'antd';
 import 'styles/App.css';
 
 import TopBar from 'components/TopBar';
+import UserSignin from 'components/UserSignin';
 
 type StateType = {
   authorizedUser: boolean;
@@ -35,6 +36,7 @@ class App extends React.Component<{}, StateType> {
             language={this.state.language}
             switchLanguage={this.switchLanguage}
           />
+          <UserSignin language={this.state.language} />
         </Layout>
       </div>
     );

@@ -19,7 +19,7 @@ type PropsType = {
 class TopBar extends React.Component<PropsType> {
 
   handleSelect = (event: any) => {
-    console.log(event);
+    this.props.switchLanguage(event.key);
   }
 
   render() {
@@ -32,11 +32,11 @@ class TopBar extends React.Component<PropsType> {
               key="menu-language"
               icon={<GlobalOutlined />}
               title={
-                this.props.language === 'en-us' ? 'English' : '中文'
+                this.props.language === 'en-us' ? 'Intl-English' : 'Intl-简体中文'
               }
               style={{ float: "right" }}
             >
-              <Menu.Item key="zh-hans">中文</Menu.Item>
+              <Menu.Item key="zh-hans">简体中文</Menu.Item>
               <Menu.Item key="en-us">English - US</Menu.Item>
             </SubMenu>
           </Menu>
