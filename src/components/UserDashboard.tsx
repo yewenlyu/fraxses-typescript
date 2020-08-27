@@ -6,10 +6,13 @@ import {
   ProjectOutlined,
   SisternodeOutlined,
   LockOutlined,
-  SubnodeOutlined
+  SubnodeOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons';
 
 import 'styles/UserDashboard.css';
+
+import UserDashboardOverview from 'components/UserDashboardOverview';
 
 const { SubMenu } = Menu;
 const { Content, Sider, Footer } = Layout;
@@ -52,7 +55,7 @@ class UserDashboard extends React.Component<PropsType, StateType> {
               <Menu
                 mode="inline"
                 defaultSelectedKeys={['Overview']}
-                defaultOpenKeys={['EVL Management', 'ESS Management']}
+                defaultOpenKeys={['EVL Management', 'ESS Management', 'RandD Management']}
                 onSelect={this.handleSelect}
                 style={{ height: "100%" }}
               >
@@ -74,25 +77,28 @@ class UserDashboard extends React.Component<PropsType, StateType> {
                   <Menu.Item key="EVL Session 1" icon={<LockOutlined />}>EVL Session 1</Menu.Item>
                   <Menu.Item key="EVL Session 2" icon={<LockOutlined />}>EVL Session 2</Menu.Item>
                   <Menu.Item key="EVL Session 3" icon={<LockOutlined />}>EVL Session 3</Menu.Item>
-                  <Menu.Item key="EVL Session 4" icon={<LockOutlined />}>EVL Session 4</Menu.Item>
-                  <Menu.Item key="EVL Session 5" icon={<LockOutlined />}>EVL Session 5</Menu.Item>
                 </SubMenu>
 
                 <SubMenu key="ESS Management" icon={<SubnodeOutlined />} title="ESS Management">
                   <Menu.Item key="ESS Session 1" icon={<LockOutlined />}>ESS Session 1</Menu.Item>
                   <Menu.Item key="ESS Session 2" icon={<LockOutlined />}>ESS Session 2</Menu.Item>
                   <Menu.Item key="ESS Session 3" icon={<LockOutlined />}>ESS Session 3</Menu.Item>
-                  <Menu.Item key="ESS Session 4" icon={<LockOutlined />}>ESS Session 4</Menu.Item>
+                </SubMenu>
+
+                <SubMenu key="RandD Management" icon={<ExperimentOutlined />} title="R&amp;D Management">
+                  <Menu.Item key="RandD Session 1" icon={<LockOutlined />}>R&amp;D Session 1</Menu.Item>
+                  <Menu.Item key="RandD Session 2" icon={<LockOutlined />}>R&amp;D Session 2</Menu.Item>
+                  <Menu.Item key="RandD Session 3" icon={<LockOutlined />}>R&amp;D Session 3</Menu.Item>
                 </SubMenu>
 
               </Menu>
             </Sider>
             <Content style={{ padding: '0 24px', minHeight: 280 }}>
-
+              <UserDashboardOverview />
             </Content>
           </Layout>
         </Content>
-    <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
+        <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
       </div>
     );
   }

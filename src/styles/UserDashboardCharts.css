@@ -1,0 +1,9 @@
+.UserDashboardCharts {
+  padding: 0px 5px;
+}
+
+.chart-box {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 5px;
+  height: 18vh;
+}
