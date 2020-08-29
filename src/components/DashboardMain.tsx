@@ -4,26 +4,38 @@ import {
   Button,
   Divider,
   Descriptions,
-  Tag
+  Tag,
 } from 'antd';
+import { ExportOutlined } from '@ant-design/icons';
 
-import 'styles/UserDashboardOverview.css';
+import 'styles/DashboardMain.css';
 
-import UserDashboardCharts from 'components/UserDashboardCharts';
-import UserDashboardTable from 'components/UserDashboardTable';
+import DashboardCharts from 'components/DashboardCharts';
+import DashboardTable from 'components/DashboardTable';
 
-class UserDashboardOverview extends React.Component {
+type PropsType = {
+  tab: string;
+  language: 'en-us' | 'zh-hans';
+}
+
+class DashboardMain extends React.Component<PropsType> {
+
   render() {
     return (
-      <div className="UserDashboardOverview">
+      <div className="DashboardMain">
         <PageHeader
           ghost={false}
-          title="Overview"
+          title={this.props.tab}
           tags={<Tag color="orange">Admin</Tag>}
-          subTitle="Manage all upload items"
+          subTitle={`Manage ${this.props.tab.split(' ')[0]} upload items`}
           extra={[
-            <Button key="upload-button" type="primary">
-              Create New Project
+            <Button
+              key="upload-button"
+              type="primary"
+              shape="round"
+              icon={<ExportOutlined />}
+            >
+              Export
             </Button>,
           ]}
           style={{
@@ -40,12 +52,15 @@ class UserDashboardOverview extends React.Component {
             </Descriptions.Item>
           </Descriptions>
         </PageHeader>
-        <UserDashboardCharts />
+        <DashboardCharts />
         <Divider orientation="left">Manage Uploads</Divider>
-        <UserDashboardTable />
+        <DashboardTable
+          tab={this.props.tab}
+          language={this.props.language}
+        />
       </div>
     );
   }
 }
 
-export default UserDashboardOverview;
+export default DashboardMain;

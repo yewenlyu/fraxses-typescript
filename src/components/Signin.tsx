@@ -3,13 +3,13 @@ import React from 'react';
 import { Form, Input, Button, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
-import 'styles/UserSignin.css';
+import 'styles/Signin.css';
 
 type PropsType = {
   language: 'en-us' | 'zh-hans';
 }
 
-class UserSignin extends React.Component<PropsType> {
+class Signin extends React.Component<PropsType> {
 
   onFinish = (values: any) => {
     console.log('Received values of form: ', values);
@@ -17,7 +17,7 @@ class UserSignin extends React.Component<PropsType> {
 
   render() {
     return (
-      <div className="UserSignin">
+      <div className="Signin">
         <Form
           name="normal_login"
           className="login-form"
@@ -29,7 +29,7 @@ class UserSignin extends React.Component<PropsType> {
             rules={[{
               required: true,
               message: this.props.language === 'en-us' ?
-                "Please input your Username" :
+                "Please input your name" :
                 "请输入用户名"
             }]}
           >
@@ -37,7 +37,7 @@ class UserSignin extends React.Component<PropsType> {
               prefix={<UserOutlined className="site-form-item-icon" />}
               placeholder={
                 this.props.language === 'en-us' ?
-                  "Username" : "用户名"
+                  "name" : "用户名"
               }
             />
           </Form.Item>
@@ -81,4 +81,4 @@ class UserSignin extends React.Component<PropsType> {
   }
 }
 
-export default UserSignin;
+export default Signin;

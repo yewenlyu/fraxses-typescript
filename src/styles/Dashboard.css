@@ -1,9 +1,9 @@
-.UserDashboard {
+.Dashboard {
   flex: auto;
   height: calc(100% - 64px);
 }
 
-.UserDashboard .ant-layout-sider {
+.Dashboard .ant-layout-sider {
   height: 78vh;
 }
 

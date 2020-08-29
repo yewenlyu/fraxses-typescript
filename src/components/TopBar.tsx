@@ -10,8 +10,7 @@ const { Header } = Layout;
 const { SubMenu } = Menu;
 
 type PropsType = {
-  authorizedUser: boolean;
-  authorizedAdmin: boolean;
+  authorized: boolean;
   language: 'en-us' | 'zh-hans';
   switchLanguage: (inputLanguage: 'en-us' | 'zh-hans') => void;
 }

@@ -1,4 +1,4 @@
-.UserDashboardTable {
+.DashboardTable {
   padding: 0px 5px;
 }
 
@@ -15,4 +15,9 @@
 
 .ant-table-wrapper {
   padding: 5px;
+}
+
+.ant-input-search {
+  height: 30px;
+  font-size: 12.5px;
 }

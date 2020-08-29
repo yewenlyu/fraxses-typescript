@@ -4,20 +4,18 @@ import { Layout } from 'antd';
 import 'styles/App.css';
 
 import TopBar from 'components/TopBar';
-import UserSignin from 'components/UserSignin';
-import UserDashboard from 'components/UserDashboard';
+import Signin from 'components/Signin';
+import Dashboard from 'components/Dashboard';
 
 type StateType = {
-  authorizedUser: boolean;
-  authorizedAdmin: boolean;
+  authorized: boolean;
   language: 'en-us' | 'zh-hans';
 }
 
 class App extends React.Component<{}, StateType> {
 
   state = {
-    authorizedUser: false,
-    authorizedAdmin: false,
+    authorized: false,
     language: 'en-us' as const
   }
 
@@ -32,13 +30,12 @@ class App extends React.Component<{}, StateType> {
       <div className="App">
         <Layout>
           <TopBar
-            authorizedUser={this.state.authorizedUser}
-            authorizedAdmin={this.state.authorizedAdmin}
+            authorized={this.state.authorized}
             language={this.state.language}
             switchLanguage={this.switchLanguage}
           />
-          {/* <UserSignin language={this.state.language} /> */}
-          <UserDashboard language={this.state.language} />
+          {/* <Signin language={this.state.language} /> */}
+          <Dashboard language={this.state.language} />
         </Layout>
       </div>
     );
