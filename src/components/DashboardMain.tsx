@@ -5,8 +5,12 @@ import {
   Divider,
   Descriptions,
   Tag,
+  Badge,
 } from 'antd';
-import { ExportOutlined } from '@ant-design/icons';
+import {
+  ExportOutlined,
+  BellOutlined
+} from '@ant-design/icons';
 
 import 'styles/DashboardMain.css';
 
@@ -37,6 +41,14 @@ class DashboardMain extends React.Component<PropsType> {
             >
               Export
             </Button>,
+            <Badge dot
+              key="notification-badge">
+              <Button
+                key="notification-button"
+                shape="circle"
+                icon={<BellOutlined />}
+              />
+          </Badge>
           ]}
           style={{
             padding: '0px 5px 15px'

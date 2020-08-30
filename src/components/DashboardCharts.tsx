@@ -10,18 +10,22 @@ class DashboardCharts extends React.Component {
         <Row gutter={16}>
           <Col className="gutter-row" span={6}>
             <div className="chart-box">
+              <p className="placeholder">&lt;Result Data&gt;</p>
             </div>
           </Col>
           <Col className="gutter-row" span={6}>
             <div className="chart-box">
-              
+              <p className="placeholder">&lt;Result Data&gt;</p>
             </div>
           </Col>
           <Col className="gutter-row" span={6}>
-            <div className="chart-box"></div>
+            <div className="chart-box">
+              <p className="placeholder">&lt;Result Data&gt;</p>
+            </div>
           </Col>
           <Col className="gutter-row" span={6}>
             <div className="chart-box">
+              <p className="placeholder">&lt;Result Data&gt;</p>
             </div>
           </Col>
         </Row>

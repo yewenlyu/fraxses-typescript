@@ -5,14 +5,29 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 import 'styles/Signin.css';
 
+import * as APIUtils from 'utils/api-utils';
+
 type PropsType = {
+  handleSignin: () => void;
   language: 'en-us' | 'zh-hans';
 }
 
 class Signin extends React.Component<PropsType> {
 
   onFinish = (values: any) => {
-    console.log('Received values of form: ', values);
+    let signinData = {
+      name: values.username,
+      password: values.password
+    }
+
+    APIUtils.post('/api/account/login', JSON.stringify(signinData))
+      .then(response => {
+        if (response.code === 'OK') {
+          this.props.handleSignin();
+        } else {
+          APIUtils.handleError(response.code, this.props.language);
+        }
+      })
   }
 
   render() {
@@ -37,7 +52,7 @@ class Signin extends React.Component<PropsType> {
               prefix={<UserOutlined className="site-form-item-icon" />}
               placeholder={
                 this.props.language === 'en-us' ?
-                  "name" : "用户名"
+                  "Name" : "用户名"
               }
             />
           </Form.Item>

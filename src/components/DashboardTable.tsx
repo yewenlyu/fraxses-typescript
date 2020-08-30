@@ -21,6 +21,8 @@ import 'styles/DashboardTable.css';
 
 import UploadForm from 'components/UploadForm';
 
+import * as APIUtils from 'utils/api-utils';
+
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
@@ -41,6 +43,32 @@ class DashboardTable extends React.Component<PropsType, StateType> {
     this.state = {
       drawerVisible: false
     }
+  }
+
+  componentDidMount() {
+    
+    let productName: string = "";
+    switch (this.props.tab) {
+      case "EVL Management":
+        productName = "ev";
+        break;
+      case "ESS Management":
+        productName = "ess"
+        break;
+      case "R&amp;D Management":
+        productName = "r&d"
+        break;
+    }
+
+    let requestData = {
+      product: productName
+    }
+
+    APIUtils.get('/api/data/upload/list', JSON.stringify(requestData))
+    .catch(err => {
+      console.warn(err);
+      APIUtils.handleError(err, this.props.language);
+    })
   }
 
   openDrawer = () => {
