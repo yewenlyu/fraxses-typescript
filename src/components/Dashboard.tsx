@@ -16,6 +16,7 @@ import UploadSession from 'components/Upload';
 const { Content, Sider, Footer } = Layout;
 
 type PropsType = {
+  userInfo: any;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -43,13 +44,29 @@ class Dashboard extends React.Component<PropsType, StateType> {
   drawerControl = (on: boolean) => this.setState({ drawerVisible: on });
   uploadControl = (on: boolean) => this.setState({ uploadInProgress: on });
 
+  enzh = (english: string, chinese: string): string =>
+    this.props.language === 'en-us' ? english : chinese;
+
+  zhtab = (english: string): string => {
+    switch (english) {
+      case "EV Management":
+        return "电动汽车分析平台";
+      case "ESS Management":
+        return "储能系统分析平台";
+      case "R&D Management":
+        return "电池研发测试分析平台";
+      default:
+        return "";
+    }
+  }
+
   render() {
     return (
       <div className="Dashboard">
         <Content style={{ padding: '0 50px' }}>
           <Breadcrumb style={{ margin: '16px 0' }}>
-            <Breadcrumb.Item>Home</Breadcrumb.Item>
-            <Breadcrumb.Item>{this.state.tab}</Breadcrumb.Item>
+            <Breadcrumb.Item>{this.enzh('Home', '主页')}</Breadcrumb.Item>
+            <Breadcrumb.Item>{this.enzh(this.state.tab, this.zhtab(this.state.tab))}</Breadcrumb.Item>
           </Breadcrumb>
           <Layout className="site-layout-background" style={{ padding: '24px 0' }}>
             <Sider className="site-layout-background" width={220}>
@@ -63,21 +80,21 @@ class Dashboard extends React.Component<PropsType, StateType> {
                   key="EV Management"
                   icon={<SisternodeOutlined />}
                 >
-                  EV Management
+                  {this.enzh("EV Management", "电动汽车分析平台")}
                 </Menu.Item>
 
                 <Menu.Item
                   key="ESS Management"
                   icon={<NodeIndexOutlined />}
                 >
-                  ESS Management
+                  {this.enzh("ESS Management", "储能系统分析平台")}
                 </Menu.Item>
 
                 <Menu.Item
                   key="R&amp;D Management"
                   icon={<ExperimentOutlined />}
                 >
-                  R&amp;D Management
+                  {this.enzh("R&D Management", "电池研发测试分析平台")}
                 </Menu.Item>
               </Menu>
             </Sider>
@@ -85,6 +102,7 @@ class Dashboard extends React.Component<PropsType, StateType> {
             <Content style={{ padding: '0 24px', minHeight: 280 }}>
               <DashboardMain
                 tab={this.state.tab}
+                userInfo={this.props.userInfo}
                 uploadInProgress={this.state.uploadInProgress}
                 drawerControl={this.drawerControl}
                 language={this.props.language}

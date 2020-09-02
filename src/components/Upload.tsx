@@ -58,12 +58,29 @@ class UploadSession extends React.Component<PropsType, StateType> {
     this.state = {
       fileData: null,
       uploadName: "",
-      serviceType: this.props.tab,
+      serviceType: "ev",
       isAccident: false
     };
   }
 
+  componentDidUpdate(prevProps: PropsType) {
+    if (this.props.tab !== prevProps.tab) {
+      switch(this.props.tab) {
+        case "EV Management":
+          this.setState({ serviceType: "ev" });
+          break;
+        case "ESS Management":
+          this.setState({ serviceType: "ess" });
+          break;
+        case "R&D Management":
+          this.setState({ serviceType: "rd" });
+          break;
+      }
+    }
+  }
+
   inputUploadName = (e: any) => this.setState({ uploadName: e.target.value });
+  selectService = (value: string) => this.setState({ serviceType: value });
   setAccident = (checked: boolean) => this.setState({ isAccident: checked });
   onSubmit = (values: any) => {
     console.log("Recieved values from form:", values);
@@ -88,12 +105,22 @@ class UploadSession extends React.Component<PropsType, StateType> {
 
   formRef = React.createRef<FormInstance>();
 
+  enzh = (english: string, chinese: string): string =>
+    this.props.language === 'en-us' ? english : chinese;
+
   render() {
+
+    let uploadTagOptions = [];
+    for (let i = 1; i <= 3; i++) {
+      let value = this.state.serviceType.split(' ')[0] + i;
+      uploadTagOptions.push(<Option key={value} value={value}>{value}</Option>)
+    }
+
     return (
       <div className="Upload">
         <div className="upload-drawer">
           <Drawer
-            title="Start New Upload Session"
+            title={this.enzh("Start New Upload Session", "上传数据")}
             width={720}
             visible={this.props.drawerVisible}
             onClose={() => this.props.drawerControl(false)}
@@ -120,10 +147,10 @@ class UploadSession extends React.Component<PropsType, StateType> {
                     !this.state.fileData || this.state.uploadName === ""
                   }
                 >
-                  Start Upload
+                  {this.enzh("Start Upload", "开始上传")}
                 </Button>
                 <Button onClick={() => this.props.drawerControl(false)}>
-                  Cancel
+                  {this.enzh("Cancel", "取消")}
                 </Button>
               </div>
             }
@@ -136,61 +163,60 @@ class UploadSession extends React.Component<PropsType, StateType> {
               >
 
                 <Form.Item
-                  label="Upload Name"
+                  label={this.enzh("Upload Name", "数据名")}
                   name="uploadName"
                   rules={[
-                    { required: true, message: "An upload name is required to continue" }
+                    { required: true, message: this.enzh("An upload name is required to continue", "请输入数据名") }
                   ]}
                 >
-                  <Input onChange={this.inputUploadName} placeholder="Custom name for this dataset. " />
+                  <Input onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "")} />
                 </Form.Item>
 
-                <Form.Item label="Upload Remarks" name="note">
-                  <TextArea rows={3} placeholder="Description and remarks of this dataset (Optional)" />
+                <Form.Item label={this.enzh("Upload Remarks", "上传备注")} name="note">
+                  <TextArea rows={3} placeholder={this.enzh("Description and remarks of this dataset (Optional)", "")} />
                 </Form.Item>
 
                 <Form.Item
-                  label="Select Service"
+                  label={this.enzh("Select Service", "选择数据类型")}
                   initialValue={APIUtils.ProductsInfo[this.props.tab].productName}
                   name="service"
                 >
-                  <Select>
+                  <Select onChange={this.selectService}>
                     <Option value="ev">EV Operation</Option>
                     <Option value="ess">ESS Operation</Option>
                     <Option value="rd">Cell Long-term Performance Testing</Option>
                   </Select>
                 </Form.Item>
 
-                <Form.Item label="Upload ID Tag" name="idtag">
-                  <Select mode="tags" style={{ width: '100%' }} placeholder="Upload Tag (Optional)">
-                    <Option key="ev1" value="EV1">EV1</Option>
-                    <Option key="ess1" value="ESS1">ESS1</Option>
-                    <Option key="cb1" value="Cell Batch 1">Cell Batch 1</Option>
+                <Form.Item label={this.enzh("Upload ID Tag", "上传标签")} name="idtag">
+                  <Select mode="tags" style={{ width: '100%' }} placeholder={this.enzh("Upload Tag (Optional)", "")}>
+                    {uploadTagOptions}
                   </Select>
                 </Form.Item>
 
-                <Form.Item label="Accident Data" name="isAccident" valuePropName="checked">
+                <Form.Item label={this.enzh("Accident Data", "添加事故数据")} name="isAccident" valuePropName="checked">
                   <Switch checkedChildren="Yes" unCheckedChildren="No" onChange={this.setAccident} />
                 </Form.Item>
 
-                <Form.Item label="Accident Date" name="accidentDate">
+                <Form.Item label={this.enzh("Accident Date", "事故日期")} name="accidentDate">
                   <DatePicker
                     disabled={!this.state.isAccident}
+                    placeholder={this.enzh("Select Date", "选择日期")}
                     disabledDate={current => current.isAfter(moment())} />
                 </Form.Item>
 
-                <Form.Item label="Accident Description" name="accidentNote">
+                <Form.Item label={this.enzh("Accident Description", "事故描述")} name="accidentNote">
                   <TextArea
                     rows={3}
                     style={{ width: '100%' }}
                     disabled={!this.state.isAccident}
-                    placeholder="Relevant infomations about this accident. (Optional)" />
+                    placeholder={this.enzh("Relevant infomations about this accident. (Optional)", "")} />
                 </Form.Item>
 
                 <Form.Item
-                  label="Upload File"
+                  label={this.enzh("Upload File", "上传数据")}
                   rules={[
-                    { required: true, message: "Please upload dataset to continue. " }
+                    { required: true, message: this.enzh("Please upload dataset to continue. ", "请添加数据文件") }
                   ]}
                 >
                   <Form.Item
@@ -207,7 +233,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                         <InboxOutlined />
                       </p>
                       <p className="ant-upload-text">
-                        Click or drag file to this area to upload
+                        {this.enzh("Click or drag file to this area to upload", "点击或拖拽文件至此区域")}
                     </p>
                     </Upload.Dragger>
                   </Form.Item>

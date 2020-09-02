@@ -80,25 +80,28 @@ class AlgorithmController extends React.Component<PropsType, StateType> {
     this.props.algorithmControl(false);
   }
 
+  enzh = (english: string, chinese: string): string =>
+    this.props.language === 'en-us' ? english : chinese;
+
   render() {
     return (
       <div className="AlgorithmController">
         <Modal
-          title="Select Algorithm"
+          title={this.enzh("Select Algorithm", "算法选择")}
           visible={true}
           centered
           onCancel={this.handleCancel}
           footer={[
             <Button key="back" onClick={this.handleCancel}>
-              Cancel
+              {this.enzh("Cancel", "取消")}
             </Button>,
             <Button key="submit" type="primary" onClick={this.handleStartAnalyze}>
-              Start Analyzing
+              {this.enzh("Start Analyzing", "开始分析")}
             </Button>,
           ]}
         >
           <Select
-            placeholder="Please select an Algorithm"
+            placeholder={this.enzh("Please select an Algorithm", "请选择算法")}
             style={{ margin: "auto" }}
             onChange={this.handleSelectAlgo}
           >

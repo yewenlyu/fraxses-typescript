@@ -12,6 +12,7 @@ import * as APIUtils from 'utils/api-utils';
 
 type StateType = {
   authorized: boolean;
+  userInfo: any;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -22,21 +23,27 @@ class App extends React.Component<{}, StateType> {
     super(props);
     this.state = {
       authorized: false,
+      userInfo: null,
       language: 'en-us' as const
     }
 
-    this.handleSignin = this.handleSignin.bind(this);
+    this.logUser = this.logUser.bind(this);
     this.handleSignout = this.handleSignout.bind(this);
     this.switchLanguage = this.switchLanguage.bind(this);
   }
 
   componentDidMount = () => {
+    this.logUser();
+  }
+
+  logUser = () => {
     APIUtils.get('/api/account/user/info')
-    .then(responseData => {
-      if (responseData.code === 'OK') {
+    .then(response => {
+      if (response.code === 'OK') {
         this.setState({
+          userInfo: (response as APIUtils.SuccessResponseDataType).data,
           authorized: true
-        });
+        })
       }
     })
     .catch(() => {
@@ -44,12 +51,6 @@ class App extends React.Component<{}, StateType> {
         authorized: false
       })
     })
-  }
-
-  handleSignin = () => {
-    this.setState({
-      authorized: true
-    });
   }
 
   handleSignout = () => {
@@ -69,14 +70,16 @@ class App extends React.Component<{}, StateType> {
     return this.state.authorized ?
       <Redirect to="/home" /> :
       <Signin
-        handleSignin={this.handleSignin}
+        handleSignin={this.logUser}
         language={this.state.language}
       />
   }
 
   mountDashboard = () => {
     return this.state.authorized ?
-    <Dashboard language={this.state.language} /> :
+    <Dashboard
+      userInfo={this.state.userInfo}
+      language={this.state.language} /> :
     <Redirect to="/signin" />
   }
 

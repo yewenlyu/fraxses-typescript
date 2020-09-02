@@ -141,78 +141,82 @@ class DashboardTable extends React.Component<PropsType, StateType> {
     }));
   }
 
-  formColumns = [
-    {
-      title: 'File Name',
-      dataIndex: 'upload_name',
-      key: 'file_name',
-    },
-    {
-      title: 'File Key',
-      dataIndex: 'id',
-      key: 'id',
-    },
-    {
-      title: 'Upload Time',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (text: number) => {
-        let current = new Date(text * 1000);
-        return <div>{current.toString().split(' ').splice(0, 6).join(' ')}</div>
-      }
-    },
-    {
-      title: 'Status',
-      dataIndex: 'state',
-      key: 'state',
-      render: (text: string) => {
-        switch (text) {
-          case 'uploaded-raw':
-            return (<Tag color="cyan">Uploaded</Tag>);
-          case 'init':
-            return (<Tag color="green">Analyzing</Tag>);
-          default:
-            return (<Tag color="blue">Complete</Tag>);
-        }
-      },
-    },
-    {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (text: any, record: any) => {
-        if (record.state === 'uploaded-raw') {
-          return (<a href="/#" onClick={e => { this.handleSelectFile(e, record.file_name) }}>Select Algorithm</a>);
-        } else if (record.state === 'init') {
-          return (<span style={{ color: "#00000040" }}>Analyze in Progress</span>);
-        } else {
-          return (<a href="/#" onClick={e => { e.preventDefault() }}>View Result</a>);
-        }
-      },
-    },
-  ];
-
-  bulkActionMenu = (
-    <Menu>
-      <Menu.Item key="bulk-choose-algo">Choose Algorithm</Menu.Item>
-      <Menu.Item key="bulk-view-result">View Result</Menu.Item>
-    </Menu>
-  )
-
-  filterPopup = (
-    <div>
-      <RangePicker
-        showTime={{ format: 'HH:mm' }}
-        format="YYYY-MM-DD HH:mm"
-        allowClear={true}
-        disabledDate={(current: moment.Moment) => current > moment().endOf('day')}
-        onChange={this.selectTimeRange}
-        onOk={this.applyTimeRange}
-      />
-    </div>
-  )
+  enzh = (english: string, chinese: string): string =>
+    this.props.language === 'en-us' ? english : chinese;
 
   render() {
+
+    let bulkActionMenu = (
+      <Menu>
+        <Menu.Item key="bulk-choose-algo">{this.enzh("Choose Algorithm", "选择算法")}</Menu.Item>
+        <Menu.Item key="bulk-view-result">{this.enzh("View Result", "查看结果")}</Menu.Item>
+      </Menu>
+    )
+
+    let filterPopup = (
+      <div>
+        <RangePicker
+          showTime={{ format: 'HH:mm' }}
+          format="YYYY-MM-DD HH:mm"
+          allowClear={true}
+          disabledDate={(current: moment.Moment) => current > moment().endOf('day')}
+          onChange={this.selectTimeRange}
+          onOk={this.applyTimeRange}
+        />
+      </div>
+    )
+
+    let formColumns = [
+      {
+        title: this.enzh('File Name', '数据名'),
+        dataIndex: 'upload_name',
+        key: 'file_name',
+      },
+      {
+        title: this.enzh('File Key', '数据编码'),
+        dataIndex: 'id',
+        key: 'id',
+      },
+      {
+        title: this.enzh('Upload Time', '上传时间'),
+        dataIndex: 'created_at',
+        key: 'created_at',
+        render: (text: number) => {
+          let current = new Date(text * 1000);
+          return <div>{current.toString().split(' ').splice(0, 6).join(' ')}</div>
+        }
+      },
+      {
+        title: this.enzh('Status', '状态'),
+        dataIndex: 'state',
+        key: 'state',
+        render: (text: string) => {
+          switch (text) {
+            case 'uploaded-raw':
+              return (<Tag color="cyan">{this.enzh("Uploaded", "上传完成")}</Tag>);
+            case 'init':
+              return (<Tag color="green">{this.enzh("Analyzing", "分析中")}</Tag>);
+            default:
+              return (<Tag color="blue">{this.enzh("Complete", "分析完成")}</Tag>);
+          }
+        },
+      },
+      {
+        title: this.enzh('Action', '可选操作'),
+        dataIndex: '',
+        key: 'x',
+        render: (text: any, record: any) => {
+          if (record.state === 'uploaded-raw') {
+            return (<a href="/#" onClick={e => { this.handleSelectFile(e, record.file_name) }}>{this.enzh("Select Algorithm", "选择算法")}</a>);
+          } else if (record.state === 'init') {
+            return (<span style={{ color: "#00000040" }}>{this.enzh("Analyze in Progress", "分析中")}</span>);
+          } else {
+            return (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>);
+          }
+        },
+      },
+    ];
+
     return (
       <div className="DashboardTable">
         <Button
@@ -222,22 +226,22 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           icon={<CloudUploadOutlined />}
           onClick={() => this.props.drawerControl(true)}
         >
-          New Upload
+          {this.enzh("New Upload", "上传数据")}
         </Button>
 
-        <Dropdown overlay={this.bulkActionMenu} trigger={['click']}>
+        <Dropdown overlay={bulkActionMenu} trigger={['click']}>
           <Button
             className="table-button"
             shape="round"
             icon={<UnorderedListOutlined />}
           >
-            Bulk Action
+            {this.enzh("Bulk Action", "多选操作")}
         </Button>
         </Dropdown>
 
         <Popover
           placement="bottomLeft"
-          content={this.filterPopup}
+          content={filterPopup}
           destroyTooltipOnHide={true}
           trigger="click"
         >
@@ -246,7 +250,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
             shape="round"
             icon={<FilterOutlined />}
           >
-            Filter
+            {this.enzh("Filter", "筛选")}
           </Button>
         </Popover>
 
@@ -267,14 +271,14 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           icon={<ReloadOutlined />}
           onClick={this.refresh}
         >
-          Refresh
+          {this.enzh("Refresh", "重置")}
         </Button>
 
         <Table
           size="middle"
           rowSelection={{}}
           pagination={{ pageSize: 7 }}
-          columns={this.formColumns}
+          columns={formColumns}
           dataSource={this.state.filteredFileList}
         />
         { this.state.algorithmControl ?

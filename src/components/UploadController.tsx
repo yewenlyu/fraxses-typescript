@@ -307,11 +307,11 @@ class UploadController extends React.Component<PropsType, StateType> {
 
   stepDescription = (currentStep: number) => {
     if (this.state.step < currentStep) {
-      return "Waiting"
+      return this.enzh("Waiting", "等待中...");
     } else if (this.state.step > currentStep) {
-      return "Finished"
+      return this.enzh("Finished", "已完成");
     } else {
-      return "Current Progress: " + this.state.progress + "%";
+      return this.enzh("Current Progress: ", "当前进度：") + this.state.progress + "%";
     }
   }
 
@@ -324,13 +324,16 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
   }
 
+  enzh = (english: string, chinese: string): string =>
+    this.props.language === 'en-us' ? english : chinese;
+
   render() {
     return (
       <div className="UploadController">
         <Modal
           visible={this.state.modalVisible}
           centered
-          title="Upload Data"
+          title={this.enzh("Upload Data", "上传数据文件")}
           footer={null}
           onCancel={this.handleClose}
         >
@@ -341,16 +344,16 @@ class UploadController extends React.Component<PropsType, StateType> {
             status={this.state.err ? "error" : "process"}
           >
             <Step
-              title="Processing File"
+              title={this.enzh("Processing File", "处理文件")}
               description={this.stepDescription(0)}
             />
             <Step
-              title="Uploading File"
+              title={this.enzh("Uploading File", "上传文件")}
               description={this.stepDescription(1)}
             />
             <Step
-              title="Upload Finished"
-              description={this.state.step >= 2 ? "You may now close the window." : "Waiting"}
+              title={this.enzh("Upload Finished", "上传完成")}
+              description={this.state.step >= 2 ? this.enzh("You may now close the window.", "您可以关闭此对话框") : this.enzh("Waiting", "等待中...")}
             />
           </Steps>
         </Modal>
