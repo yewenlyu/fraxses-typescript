@@ -110,6 +110,11 @@ class DashboardTable extends React.Component<PropsType, StateType> {
   }
 
   onSearch = (value: string) => {
+    if (value === "") {
+      this.setState({
+        filteredFileList: this.state.fileList
+      })
+    }
     this.setState(state => ({
       filteredFileList: state.filteredFileList.filter(record => record.upload_name.includes(value))
     }));
@@ -158,6 +163,11 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         <RangePicker
           showTime={{ format: 'HH:mm' }}
           format="YYYY-MM-DD HH:mm"
+          ranges={{
+            'Today': [moment(), moment()],
+            'This Month': [moment().startOf('month'), moment()],
+            'This Year': [moment().startOf('year'), moment()]
+          }}
           allowClear={true}
           disabledDate={(current: moment.Moment) => current > moment().endOf('day')}
           onChange={this.selectTimeRange}
@@ -242,7 +252,6 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         <Popover
           placement="bottomLeft"
           content={filterPopup}
-          destroyTooltipOnHide={true}
           trigger="click"
         >
           <Button
@@ -271,7 +280,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           icon={<ReloadOutlined />}
           onClick={this.refresh}
         >
-          {this.enzh("Refresh", "重置")}
+          {this.enzh("Refresh / Clear Filter", "重置")}
         </Button>
 
         <Table
