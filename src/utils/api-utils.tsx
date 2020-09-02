@@ -8,17 +8,18 @@ type HeaderType = {
   'Content-Type': string;
 }
 
-type SuccessResponseDataType = {
+export type SuccessResponseDataType = {
   code: string;
-  body: any;
+  data: any;
 }
 
-type ErrorResponseDataType = {
+export type ErrorResponseDataType = {
   code: string;
   error: string;
 }
 
 type ResponseDataType = SuccessResponseDataType | ErrorResponseDataType;
+interface ParamsType { [key: string]: string | number };
 
 /**
  * The only hard coded CSRF token, the rest should be extracted from cookies using parseCookies('csrf_token') after logging in
@@ -43,6 +44,15 @@ const parseCookies = (key: string): string => {
   };
   return "";
 }
+
+/**
+ * Generate query string from parameters object for GET request URL
+ * @param params : { [key: string]: string | number } - parameters object
+ */
+const queryString = (params: ParamsType): string =>
+  Object.keys(params).map((key: string): string =>
+    encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
+  ).join('&');
 
 /**
  * POST HTTP Request API
@@ -75,28 +85,24 @@ export const post = async (url: string, requestData?: string): Promise<ResponseD
 
 /**
  * GET HTTP Request API
- * @param url : string - rooted at proxy in package.json, start with 
- * @param requestData : string - JSON string, e.g. JSON.stringify(rawData)
+ * @param url : string - rooted at proxy in package.json, start with "/"
  * @returns : Promise<ResponseDataType> - Promise resolves to JSON respond body
  */
-export const get = async (url: string, requestData?: string): Promise<ResponseDataType> => {
+export const get = async (url: string, params?: ParamsType): Promise<ResponseDataType> => {
 
-  let header: HeaderType = {
-    'X-CSRFToken': parseCookies('csrf_token'),
-    'Content-Type': 'application/json'
+  if (params !== undefined) {
+    url = url + '?' + queryString(params);
   }
 
   return fetch(url, {
-    method: 'GET',
-    headers: header,
-    body: requestData
+    method: 'GET'
   })
     .then((response: Response): Promise<any> => response.json())
     .then((responseData: ResponseDataType) => {
       if (responseData.code === 'OK') {
-        console.log('SUCCESS!', url, header, requestData, responseData);
+        console.log('SUCCESS!', url, responseData);
       } else {
-        console.warn('FAIL!', url, header, requestData, responseData);
+        console.warn('FAIL!', url, responseData);
       }
       return responseData;
     });
@@ -109,6 +115,7 @@ export const handleError = (errorCode: string, language: 'en-us' | 'zh-hans') =>
 
   if (messageLanguageMap.get(errorCode) === undefined) {
     message.error(messageLanguageMap.get("default") + errorCode)
+    return;
   }
 
   if (language === 'en-us') {
@@ -116,6 +123,34 @@ export const handleError = (errorCode: string, language: 'en-us' | 'zh-hans') =>
   }
   else if (language === 'zh-hans') {
     message.warn(messageLanguageMap.get(errorCode)?.["zh-hans"]);
+  }
+}
+
+/**
+ * Product informations defined in API
+ */
+interface ProductsInfoType {
+  [key: string]: {
+    productId: number,
+    productName: string,
+    productDescription: string
+  }
+}
+export const ProductsInfo: ProductsInfoType = {
+  "EV Management": {
+    productId: 1,
+    productName: "ev",
+    productDescription: "EV"
+  },
+  "ESS Management": {
+    productId: 2,
+    productName: "ess",
+    productDescription: "ESS"
+  },
+  "R&D Management": {
+    productId: 3,
+    productName: "rd",
+    productDescription: "RD"
   }
 }
 

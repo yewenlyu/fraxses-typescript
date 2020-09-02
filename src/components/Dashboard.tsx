@@ -10,6 +10,7 @@ import {
 import 'styles/Dashboard.css';
 
 import DashboardMain from 'components/DashboardMain';
+import UploadSession from 'components/Upload';
 
 // const { SubMenu } = Menu;
 const { Content, Sider, Footer } = Layout;
@@ -20,6 +21,8 @@ type PropsType = {
 
 type StateType = {
   tab: string;
+  drawerVisible: boolean;
+  uploadInProgress: boolean;
 }
 
 class Dashboard extends React.Component<PropsType, StateType> {
@@ -29,15 +32,16 @@ class Dashboard extends React.Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props);
     this.state = {
-      tab: 'EVL Management'
+      tab: 'EV Management',
+      drawerVisible: false,
+      uploadInProgress: false
     }
   }
 
-  handleSelect = (event: any) => {
-    this.setState({
-      tab: event.key
-    })
-  }
+  // controller methods
+  handleSelect = (event: any) => this.setState({ tab: event.key });
+  drawerControl = (on: boolean) => this.setState({ drawerVisible: on });
+  uploadControl = (on: boolean) => this.setState({ uploadInProgress: on });
 
   render() {
     return (
@@ -51,15 +55,15 @@ class Dashboard extends React.Component<PropsType, StateType> {
             <Sider className="site-layout-background" width={220}>
               <Menu
                 mode="inline"
-                defaultSelectedKeys={['EVL Management']}
+                defaultSelectedKeys={['EV Management']}
                 onSelect={this.handleSelect}
                 style={{ height: "100%" }}
               >
                 <Menu.Item
-                  key="EVL Management"
+                  key="EV Management"
                   icon={<SisternodeOutlined />}
                 >
-                  EVL Management
+                  EV Management
                 </Menu.Item>
 
                 <Menu.Item
@@ -81,6 +85,8 @@ class Dashboard extends React.Component<PropsType, StateType> {
             <Content style={{ padding: '0 24px', minHeight: 280 }}>
               <DashboardMain
                 tab={this.state.tab}
+                uploadInProgress={this.state.uploadInProgress}
+                drawerControl={this.drawerControl}
                 language={this.props.language}
               />
             </Content>
@@ -88,6 +94,14 @@ class Dashboard extends React.Component<PropsType, StateType> {
           </Layout>
         </Content>
         <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
+        <UploadSession
+          drawerVisible={this.state.drawerVisible}
+          uploadInProgress={this.state.uploadInProgress}
+          drawerControl={this.drawerControl}
+          uploadControl={this.uploadControl}
+          tab={this.state.tab}
+          language={this.props.language}
+        />
       </div>
     );
   }

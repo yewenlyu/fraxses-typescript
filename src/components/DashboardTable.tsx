@@ -1,7 +1,7 @@
 import React from 'react';
+import moment from 'moment';
 import {
   Button,
-  Drawer,
   Table,
   Tag,
   Input,
@@ -14,12 +14,13 @@ import {
 import {
   CloudUploadOutlined,
   UnorderedListOutlined,
-  FilterOutlined
+  FilterOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 
 import 'styles/DashboardTable.css';
 
-import UploadForm from 'components/UploadForm';
+import AlgorithmController from 'components/AlgorithmController';
 
 import * as APIUtils from 'utils/api-utils';
 
@@ -28,154 +29,167 @@ const { RangePicker } = DatePicker;
 
 type PropsType = {
   tab: string;
+  uploadInProgress: boolean;
+  drawerControl: (on: boolean) => void;
   language: 'en-us' | 'zh-hans';
 }
 
 type StateType = {
-  drawerVisible: boolean
+  fileList: any[];
+  filteredFileList: any[];
+  algoList: any[];
+  algorithmControl: boolean;
+  refresh: boolean;
 }
+
+type TimeRangeType = [moment.Moment, moment.Moment]
 
 class DashboardTable extends React.Component<PropsType, StateType> {
 
   state: StateType;
+  targetFileId: string;
+  timeRange: TimeRangeType;
+
   constructor(props: PropsType) {
     super(props);
     this.state = {
-      drawerVisible: false
+      fileList: [],
+      filteredFileList: [],
+      algoList: [],
+      algorithmControl: false,
+      refresh: false
     }
+
+    this.targetFileId = "";
+    this.timeRange = [moment(0), moment(0)];
   }
 
   componentDidMount() {
-    
-    let productName: string = "";
-    switch (this.props.tab) {
-      case "EVL Management":
-        productName = "ev";
-        break;
-      case "ESS Management":
-        productName = "ess"
-        break;
-      case "R&amp;D Management":
-        productName = "r&d"
-        break;
+    this.getFileList();
+  }
+
+  componentDidUpdate(prevProps: PropsType, prevState: StateType) {
+    if (this.props.tab !== prevProps.tab ||
+      this.props.uploadInProgress !== prevProps.uploadInProgress ||
+      this.state.refresh !== prevState.refresh ||
+      this.state.algorithmControl !== prevState.algorithmControl
+    ) {
+      this.getFileList();
+    }
+  }
+
+  algorithmControl = (on: boolean) => this.setState({ algorithmControl: on });
+
+  getFileList = () => {
+    let requestParams = {
+      product: APIUtils.ProductsInfo[this.props.tab].productName
     }
 
-    let requestData = {
-      product: productName
-    }
+    APIUtils.get('/api/data/upload/list', requestParams)
+      .then(response => {
+        if (response.code === 'OK') {
+          // assign a unique key for each row of the table
+          let uploadList: any[] = (response as APIUtils.SuccessResponseDataType).data.items;
+          uploadList.forEach((uploadItem: any) => {
+            uploadItem.key = uploadItem.id;
+          });
+          this.setState({
+            fileList: uploadList,
+            filteredFileList: uploadList
+          })
+        } else {
+          APIUtils.handleError(response.code, this.props.language);
+        }
+      })
+  }
 
-    APIUtils.get('/api/data/upload/list', JSON.stringify(requestData))
-    .catch(err => {
-      console.warn(err);
-      APIUtils.handleError(err, this.props.language);
+  refresh = () => {
+    this.setState((state, props) => ({
+      refresh: !state.refresh
+    }));
+  }
+
+  onSearch = (value: string) => {
+    this.setState(state => ({
+      filteredFileList: state.filteredFileList.filter(record => record.upload_name.includes(value))
+    }));
+  }
+
+  handleSelectFile = (e: any, fileName: string) => {
+    e.preventDefault();
+    let selectedFile = this.state.fileList.find(file => file.file_name === fileName);
+    if (selectedFile === undefined) {
+      console.warn("Cannot find ", fileName, "in", this.state.fileList);
+      return;
+    }
+    this.targetFileId = selectedFile.id;
+    console.log("File selected", this.targetFileId)
+    this.setState({
+      algorithmControl: true
     })
   }
 
-  openDrawer = () => {
-    this.setState({
-      drawerVisible: true
-    });
+  selectTimeRange = (value: any) => {
+    this.timeRange = value;
   }
 
-  onDrawerClose = () => {
-    this.setState({
-      drawerVisible: false
-    });
+  applyTimeRange = () => {
+    console.log("Time range selected: ", this.timeRange);
+    this.setState(state => ({
+      filteredFileList: state.filteredFileList.filter(record =>
+        moment.unix(record.created_at).isBetween(this.timeRange[0], this.timeRange[1]))
+    }));
   }
 
-  mockFormColumns = [
-    { title: 'File Name', dataIndex: 'name', key: 'name' },
-    { title: 'File ID', dataIndex: 'fileID', key: 'fileID' },
-    { title: 'Upload Time', dataIndex: 'uploadTime', key: 'uploadTime' },
+  formColumns = [
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        if (status.length === 0) {
-          return "";
-        } else {
-          return <Tag color="green">{status}</Tag>
-        }
+      title: 'File Name',
+      dataIndex: 'upload_name',
+      key: 'file_name',
+    },
+    {
+      title: 'File Key',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
+      title: 'Upload Time',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (text: number) => {
+        let current = new Date(text * 1000);
+        return <div>{current.toString().split(' ').splice(0, 6).join(' ')}</div>
       }
     },
     {
+      title: 'Status',
+      dataIndex: 'state',
+      key: 'state',
+      render: (text: string) => {
+        switch (text) {
+          case 'uploaded-raw':
+            return (<Tag color="cyan">Uploaded</Tag>);
+          case 'init':
+            return (<Tag color="green">Analyzing</Tag>);
+          default:
+            return (<Tag color="blue">Complete</Tag>);
+        }
+      },
+    },
+    {
       title: 'Action',
-      dataIndex: 'action',
+      dataIndex: '',
       key: 'x',
-      render: () => (
-        <Dropdown overlay={this.bulkActionMenu}>
-          <a href="/" onClick={e => e.preventDefault()}>Choose Action</a>
-        </Dropdown>
-      )
+      render: (text: any, record: any) => {
+        if (record.state === 'uploaded-raw') {
+          return (<a href="/#" onClick={e => { this.handleSelectFile(e, record.file_name) }}>Select Algorithm</a>);
+        } else if (record.state === 'init') {
+          return (<span style={{ color: "#00000040" }}>Analyze in Progress</span>);
+        } else {
+          return (<a href="/#" onClick={e => { e.preventDefault() }}>View Result</a>);
+        }
+      },
     },
-  ];
-
-  mockFormData = [
-    {
-      key: 1,
-      name: 'data05.csv',
-      fileID: "202008UD425690411",
-      uploadTime: '16 July 2020, 03:21:48 PST',
-      status: 'Completed',
-      action: <a href="/#">Select Algorithm</a>,
-    },
-    {
-      key: 2,
-      name: 'data04.tar.gz',
-      fileID: "200723UD425697810",
-      uploadTime: '11 May 2020, 14:26:03 PST',
-      status: 'Completed',
-    },
-    {
-      key: 3,
-      name: 'randfilegen.py',
-      fileID: "200808UD425693511",
-      uploadTime: '29 Feb 2020, 20:11:23 PST',
-      status: 'Completed',
-    },
-    {
-      key: 4,
-      name: 'data-depricated.tar.gz',
-      fileID: "2012723UD42569045",
-      uploadTime: '14 Feb 2020, 21:00:23 PST',
-      status: 'Completed',
-    },
-    {
-      key: 5,
-      name: 'data03.csv',
-      fileID: "2008UD42569081564",
-      uploadTime: '25 Jan 2020, 09:15:02 PST',
-      status: 'Completed',
-    },
-    {
-      key: 6,
-      name: 'data01.csv',
-      fileID: "200536UD425690763",
-      uploadTime: '14 Jan 2020, 12:59:40 PST',
-      status: 'Completed',
-    },
-    {
-      key: 7,
-      name: 'data01.csv',
-      fileID: "200458UD425690885",
-      uploadTime: '02 Jan 2020, 20:07:23 PST',
-      status: 'Completed',
-    },
-    {
-      key: 8,
-      name: 'deprecated_bat.csv',
-      fileID: "200458UD425690885",
-      uploadTime: '15 Dec 2019, 21:51:09 PST',
-      status: 'Completed',
-    },
-    {
-      key: 9,
-      name: 'accident_report.csv',
-      fileID: "200458UD425690885",
-      uploadTime: '11 Nov 2019, 04:22:15 PST',
-      status: 'Completed',
-    }
   ];
 
   bulkActionMenu = (
@@ -187,7 +201,14 @@ class DashboardTable extends React.Component<PropsType, StateType> {
 
   filterPopup = (
     <div>
-      <RangePicker />
+      <RangePicker
+        showTime={{ format: 'HH:mm' }}
+        format="YYYY-MM-DD HH:mm"
+        allowClear={true}
+        disabledDate={(current: moment.Moment) => current > moment().endOf('day')}
+        onChange={this.selectTimeRange}
+        onOk={this.applyTimeRange}
+      />
     </div>
   )
 
@@ -199,7 +220,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           type="primary"
           shape="round"
           icon={<CloudUploadOutlined />}
-          onClick={this.openDrawer}
+          onClick={() => this.props.drawerControl(true)}
         >
           New Upload
         </Button>
@@ -217,6 +238,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         <Popover
           placement="bottomLeft"
           content={this.filterPopup}
+          destroyTooltipOnHide={true}
           trigger="click"
         >
           <Button
@@ -229,46 +251,39 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         </Popover>
 
         <Search
-          onSearch={value => console.log(value)}
+          key={this.state.refresh.toString()}
+          onSearch={this.onSearch}
           size="small"
           style={{
             width: 200,
             padding: "5px",
           }}
         />
+
+        <Button
+          className="table-button refresh"
+          shape="round"
+          type="link"
+          icon={<ReloadOutlined />}
+          onClick={this.refresh}
+        >
+          Refresh
+        </Button>
+
         <Table
           size="middle"
           rowSelection={{}}
           pagination={{ pageSize: 7 }}
-          columns={this.mockFormColumns}
-          dataSource={this.mockFormData}
+          columns={this.formColumns}
+          dataSource={this.state.filteredFileList}
         />
-        <Drawer
-          title="Start New Upload Session"
-          width={720}
-          onClose={this.onDrawerClose}
-          visible={this.state.drawerVisible}
-          bodyStyle={{ paddingBottom: 80 }}
-          // footer={
-          //   <div
-          //     style={{
-          //       textAlign: 'right',
-          //     }}
-          //   >
-          //     <Button onClick={this.onDrawerClose} style={{ marginRight: 8 }}>
-          //       Cancel
-          //     </Button>
-          //     <Button onClick={this.onDrawerClose} type="primary">
-          //       Submit
-          //     </Button>
-          //   </div>
-          // }
-        >
-          <UploadForm
-            tab={this.props.tab}
+        { this.state.algorithmControl ?
+          <AlgorithmController
+            targetFileId={this.targetFileId}
+            algorithmControl={this.algorithmControl}
             language={this.props.language}
-          />
-        </Drawer>
+          /> : null
+        }
       </div>
     );
   }

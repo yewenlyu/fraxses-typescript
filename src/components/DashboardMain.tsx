@@ -19,6 +19,8 @@ import DashboardTable from 'components/DashboardTable';
 
 type PropsType = {
   tab: string;
+  uploadInProgress: boolean;
+  drawerControl: (on: boolean) => void;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -68,6 +70,8 @@ class DashboardMain extends React.Component<PropsType> {
         <Divider orientation="left">Manage Uploads</Divider>
         <DashboardTable
           tab={this.props.tab}
+          uploadInProgress={this.props.uploadInProgress}
+          drawerControl={this.props.drawerControl}
           language={this.props.language}
         />
       </div>
