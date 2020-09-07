@@ -2,6 +2,10 @@
   min-height: unset;
 }
 
+.ant-layout.ant-layout-has-sider {
+  min-height: 82vh;
+}
+
 .Dashboard {
   flex: auto;
 }
