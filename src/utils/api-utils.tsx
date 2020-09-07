@@ -180,7 +180,7 @@ export const messageLanguageMap: LanguageMapType = new Map([
     }
   ],
   [
-    "Product Not Allowed",
+    "Product Not Allow",
     {
       "en-us": "Product permission denied. Please contact administrator. ",
       "zh-hans": "您暂时没有使用此服务的权限，请联系管理员。"

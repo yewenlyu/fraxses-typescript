@@ -60,23 +60,24 @@ class UploadController extends React.Component<PropsType, StateType> {
               err: true
             })
             APIUtils.handleError(response.code, this.props.language);
-          }
+          } 
+          else {
+            let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
+            console.log("AWS metadata acquired", awsMetaData)
 
-          let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
-          console.log("AWS metadata acquired", awsMetaData)
+            let s3Client = this.getS3Client(awsMetaData.authorization);
 
-          let s3Client = this.getS3Client(awsMetaData.authorization);
+            this.setState({
+              step: 1,
+              progress: 0
+            });
 
-          this.setState({
-            step: 1,
-            progress: 0
-          });
-
-          try {
-            this.uploadFile(s3Client, awsMetaData, file, fileMD5)
-          } catch (err) {
-            this.setState({ err: true });
-            console.warn(err);
+            try {
+              this.uploadFile(s3Client, awsMetaData, file, fileMD5)
+            } catch (err) {
+              this.setState({ err: true });
+              console.warn(err);
+            }
           }
         });
     });
@@ -254,14 +255,14 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
 
     APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
-    .then(response => {
-      if (response.code !== 'OK') {
-        this.setState({
-          err: true
-        })
-        APIUtils.handleError(response.code, this.props.language);
-      }
-    })
+      .then(response => {
+        if (response.code !== 'OK') {
+          this.setState({
+            err: true
+          })
+          APIUtils.handleError(response.code, this.props.language);
+        }
+      })
   }
 
   completeUpload = (uploadId: string, fileKey: string, etag: string, location: string) => {
@@ -273,18 +274,18 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
 
     APIUtils.post('/api/data/multipart_upload/complete', JSON.stringify(requestData))
-    .then(response => {
-      if (response.code === 'OK') {
-        this.setState({
-          step: 3
-        });
-      } else {
-        this.setState({
-          err: true
-        })
-        APIUtils.handleError(response.code, this.props.language);
-      }
-    })
+      .then(response => {
+        if (response.code === 'OK') {
+          this.setState({
+            step: 3
+          });
+        } else {
+          this.setState({
+            err: true
+          })
+          APIUtils.handleError(response.code, this.props.language);
+        }
+      })
   }
 
   asyncS3Fetch = (s3: any, functionName: string, params: any): any => {
