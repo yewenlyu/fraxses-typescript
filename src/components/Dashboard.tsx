@@ -10,17 +10,19 @@ import {
 import 'styles/Dashboard.css';
 
 import DashboardMain from 'components/DashboardMain';
-import UploadSession from 'components/Upload';
+import UploadSession from 'components/UploadSession';
+
+import * as APIUtils from 'utils/api-utils';
 
 // const { SubMenu } = Menu;
 const { Content, Sider, Footer } = Layout;
 
 type PropsType = {
-  userInfo: any;
   language: 'en-us' | 'zh-hans';
 }
 
 type StateType = {
+  userInfo: any;
   tab: string;
   drawerVisible: boolean;
   uploadInProgress: boolean;
@@ -33,10 +35,31 @@ class Dashboard extends React.Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props);
     this.state = {
+      userInfo: {
+        name: '-',
+        id: '-',
+        remark: '-'
+      },
       tab: 'EV Management',
       drawerVisible: false,
       uploadInProgress: false
     }
+  }
+
+  /**
+   * Log userInfo into state
+   */
+  componentDidMount() {
+    APIUtils.get('/api/account/user/info')
+    .then(response => {
+      if (response.code === 'OK') {
+        this.setState({
+          userInfo: (response as APIUtils.SuccessResponseDataType).data,
+        })
+      } else {
+        APIUtils.handleError(response.code, this.props.language);
+      }
+    })
   }
 
   // controller methods
@@ -102,7 +125,7 @@ class Dashboard extends React.Component<PropsType, StateType> {
             <Content style={{ padding: '0 24px', minHeight: 280 }}>
               <DashboardMain
                 tab={this.state.tab}
-                userInfo={this.props.userInfo}
+                userInfo={this.state.userInfo}
                 uploadInProgress={this.state.uploadInProgress}
                 drawerControl={this.drawerControl}
                 language={this.props.language}

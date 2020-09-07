@@ -1,0 +1,10 @@
+.UploadPortal {
+  background-color: white;
+  height: 100%;
+}
+
+.upload-portal-form {
+  margin: auto;
+  max-width: 1000px;
+  padding-top: 140px;
+}

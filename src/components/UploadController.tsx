@@ -229,12 +229,10 @@ class UploadController extends React.Component<PropsType, StateType> {
       fileReader.onerror = () => {
         this.setState({ err: true });
         console.warn('oops, something went wrong.');
-        resolve()
       };
 
       fileReader.onabort = () => {
         console.warn('abort.');
-        resolve()
       };
 
       function loadNext() {

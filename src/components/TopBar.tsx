@@ -18,7 +18,7 @@ type PropsType = {
   authorized: boolean;
   language: 'en-us' | 'zh-hans';
   handleSignout: () => void;
-  switchLanguage: (inputLanguage: 'en-us' | 'zh-hans') => void;
+  switchLanguage: (inputLanguage: PropsType['language']) => void;
 }
 
 class TopBar extends React.Component<PropsType> {
