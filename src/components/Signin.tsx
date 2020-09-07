@@ -30,6 +30,9 @@ class Signin extends React.Component<PropsType> {
       })
   }
 
+  enzh = (english: string, chinese: string): string =>
+    this.props.language === 'en-us' ? english : chinese;
+
   render() {
     return (
       <div className="Signin">
@@ -43,51 +46,41 @@ class Signin extends React.Component<PropsType> {
             name="username"
             rules={[{
               required: true,
-              message: this.props.language === 'en-us' ?
-                "Please input your name" :
-                "请输入用户名"
+              message: this.enzh("Please input your name", "请输入用户名")
             }]}
           >
             <Input
               prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder={
-                this.props.language === 'en-us' ?
-                  "Name" : "用户名"
-              }
+              placeholder={this.enzh("Name", "用户名")}
             />
           </Form.Item>
           <Form.Item
             name="password"
             rules={[{
               required: true,
-              message: this.props.language === 'en-us' ?
-                "Please input your Password" :
-                "请输入登录口令"
+              message: this.enzh("Please input your Password", "请输入登录口令")
             }]}
           >
             <Input
               prefix={<LockOutlined className="site-form-item-icon" />}
               type="password"
-              placeholder={
-                this.props.language === 'en-us' ?
-                  "Password" : "登录口令"
-              }
+              placeholder={this.enzh("Password", "登录口令")}
             />
           </Form.Item>
           <Form.Item>
             <Form.Item name="remember" valuePropName="unchecked" noStyle>
               <Checkbox>
-                {this.props.language === 'en-us' ? 'Remember me' : '保存登录信息'}
+                {this.enzh('Remember me', '保存登录信息')}
               </Checkbox>
             </Form.Item>
             <a href="/" onClick={e => e.preventDefault()} className="login-form-portal">
-              {this.props.language === 'en-us' ? 'Administartor Portal' : '管理员通道'}
+              {this.enzh('Administartor Portal', '管理员通道')}
             </a>
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" className="login-form-button">
-              {this.props.language === 'en-us' ? "Log in" : "登录"}
+              {this.enzh("Log in", "登录")}
             </Button>
           </Form.Item>
         </Form>

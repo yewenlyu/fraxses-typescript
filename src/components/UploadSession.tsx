@@ -211,7 +211,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                 </Form.Item>
 
                 <Form.Item label={this.enzh("Upload Remarks", "上传备注")} name="note">
-                  <TextArea rows={3} placeholder={this.enzh("Description and remarks of this dataset (Optional)", "")} />
+                  <TextArea rows={3} placeholder={this.enzh("Description and remarks of this dataset (Optional)", "请提供上传备注（可选）")} />
                 </Form.Item>
 
                 <Form.Item
@@ -227,7 +227,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                 </Form.Item>
 
                 <Form.Item label={this.enzh("Upload ID Tag", "上传标签")} name="idtag">
-                  <Select mode="tags" style={{ width: '100%' }} placeholder={this.enzh("Upload Tag (Optional)", "")}>
+                  <Select mode="tags" style={{ width: '100%' }} placeholder={this.enzh("Upload Tag (Optional)", "请为上传数据提供标签（可选）")}>
                     {uploadTagOptions}
                   </Select>
                 </Form.Item>
@@ -248,7 +248,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                     rows={3}
                     style={{ width: '100%' }}
                     disabled={!this.state.isAccident}
-                    placeholder={this.enzh("Relevant infomations about this accident. (Optional)", "")} />
+                    placeholder={this.enzh("Relevant infomations about this accident. (Optional)", "请提供相关信息（可选）")} />
                 </Form.Item>
 
                 <Form.Item

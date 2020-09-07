@@ -1,10 +1,9 @@
-.Dashboard {
-  flex: auto;
-  height: calc(100% - 64px);
+.ant-layout {
+  min-height: unset;
 }
 
-.Dashboard .ant-layout-sider {
-  height: 78vh;
+.Dashboard {
+  flex: auto;
 }
 
 .site-layout-background {
