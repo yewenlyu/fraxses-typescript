@@ -5,7 +5,7 @@ import {
   LogoutOutlined
 } from '@ant-design/icons';
 
-import 'styles/TopBar.css';
+import 'styles/topBar.css';
 
 import Logo from 'components/Logo';
 

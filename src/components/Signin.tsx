@@ -3,7 +3,7 @@ import React from 'react';
 import { Form, Input, Button, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
-import 'styles/Signin.css';
+import 'styles/signin.css';
 
 import * as APIUtils from 'utils/api-utils';
 

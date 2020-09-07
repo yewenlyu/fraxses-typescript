@@ -7,7 +7,7 @@ import {
   NodeIndexOutlined
 } from '@ant-design/icons';
 
-import 'styles/Dashboard.css';
+import 'styles/dashboard.css';
 
 import DashboardMain from 'components/DashboardMain';
 import UploadSession from 'components/UploadSession';

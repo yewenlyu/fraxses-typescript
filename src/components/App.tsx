@@ -2,7 +2,7 @@ import React from 'react';
 import { Switch, Route, Redirect } from 'react-router';
 import { Layout } from 'antd';
 
-import 'styles/App.css';
+import 'styles/app.css';
 
 import Signin from 'components/Signin';
 import Dashboard from 'components/Dashboard';
@@ -51,7 +51,7 @@ class App extends React.Component<{}, StateType> {
 
   handleSignin = () => { this.setState({ authorized: true }); }
   handleSignout = () => { this.setState({ authorized: false }); }
-  switchLanguage = (inputLanguage: StateType["language"]) => { this.setState({ language: inputLanguage});}
+  switchLanguage = (inputLanguage: StateType["language"]) => { this.setState({ language: inputLanguage });}
 
   mountSignin = () => {
     return this.state.authorized ?

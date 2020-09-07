@@ -12,7 +12,7 @@ import {
   BellOutlined
 } from '@ant-design/icons';
 
-import 'styles/DashboardMain.css';
+import 'styles/dashboardMain.css';
 
 import DashboardCharts from 'components/DashboardCharts';
 import DashboardTable from 'components/DashboardTable';

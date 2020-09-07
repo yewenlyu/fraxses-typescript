@@ -4,18 +4,23 @@ import {
   Input,
   Select,
   Button,
-  Upload
+  Upload,
+  Modal
 } from 'antd';
 import {
   InboxOutlined,
+  ExclamationCircleOutlined,
   CloudUploadOutlined
 } from "@ant-design/icons";
 
-import 'styles/UploadPortal.css';
+import 'styles/uploadPortal.css';
 
 import UploadController from 'components/UploadController';
 
+import * as APIUtils from 'utils/api-utils';
+
 const { Option } = Select;
+const { confirm } = Modal;
 
 type PropsType = {
   language: 'en-us' | 'zh-hans';
@@ -26,6 +31,8 @@ type StateType = {
   uploadName: string;
   serviceType: string;
   uploadInProgress: boolean;
+  unfinishedUpload: boolean;
+  unfinishedUploadName: string;
 }
 
 class UploadPortal extends React.Component<PropsType, StateType> {
@@ -39,7 +46,9 @@ class UploadPortal extends React.Component<PropsType, StateType> {
       fileData: null,
       uploadName: "",
       serviceType: "ev",
-      uploadInProgress: false
+      uploadInProgress: false,
+      unfinishedUpload: false,
+      unfinishedUploadName: ""
     };
 
     this.formItemLayout = {
@@ -48,9 +57,45 @@ class UploadPortal extends React.Component<PropsType, StateType> {
     };
   }
 
+  componentDidMount() {
+    APIUtils.get('/api/data/upload/list', { product: "ev"})
+      .then(response => {
+        if (response.code === 'OK') {
+          let uploadList: any[] = (response as APIUtils.SuccessResponseDataType).data.items;
+          if (uploadList.length !== 0 && uploadList[0].state === 'uploading') {
+            this.setState({
+              unfinishedUpload: true,
+              unfinishedUploadName: (uploadList[0].upload_name)
+            });
+
+            confirm({
+              title: this.enzh(
+                `Unfinished upload detected: ${this.state.unfinishedUploadName}`,
+                `检测到尚未完成的上传: ${this.state.unfinishedUploadName}`
+                ),
+              icon: <ExclamationCircleOutlined />,
+              content: this.enzh(
+                "If you wish to resume the unfinished upload, select the same file and upload again. ",
+                "如果您想要继续未完成的上传，请在您的设备上选择该文件并再次点击上传。"
+                ),
+              onOk() {},
+              onCancel() {},
+              okText: this.enzh("OK", "确定"),
+              cancelText: this.enzh("Cancel", "取消"),
+              width: 500
+            });
+          }
+        } else {
+          APIUtils.handleError(response.code, this.props.language)
+        }
+      })
+  }
+
+  /** Controller Functions */
   uploadControl = (on: boolean) => this.setState({ uploadInProgress: on });
   inputUploadName = (e: any) => this.setState({ uploadName: e.target.value });
   selectService = (value: string) => this.setState({ serviceType: value });
+  resumeUploadControl = (on: boolean) => this.setState({ unfinishedUpload: on });
   onSubmit = (values: any) => {
     this.setState({
       uploadName: values.uploadName,

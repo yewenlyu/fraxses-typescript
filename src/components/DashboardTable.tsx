@@ -18,7 +18,7 @@ import {
   ReloadOutlined
 } from '@ant-design/icons';
 
-import 'styles/DashboardTable.css';
+import 'styles/dashboardTable.css';
 
 import AlgorithmController from 'components/AlgorithmController';
 
@@ -204,8 +204,8 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           switch (text) {
             case 'uploaded-raw':
               return (<Tag color="cyan">{this.enzh("Uploaded", "上传完成")}</Tag>);
-            case 'init':
-              return (<Tag color="green">{this.enzh("Analyzing", "分析中")}</Tag>);
+            case 'uploading':
+              return (<Tag color="orange">{this.enzh("Upload Unfinished", "上传未完成")}</Tag>);
             default:
               return (<Tag color="blue">{this.enzh("Complete", "分析完成")}</Tag>);
           }
@@ -218,8 +218,8 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         render: (text: any, record: any) => {
           if (record.state === 'uploaded-raw') {
             return (<a href="/#" onClick={e => { this.handleSelectFile(e, record.file_name) }}>{this.enzh("Select Algorithm", "选择算法")}</a>);
-          } else if (record.state === 'init') {
-            return (<span style={{ color: "#00000040" }}>{this.enzh("Analyze in Progress", "分析中")}</span>);
+          } else if (record.state === 'uploading') {
+            return (<span style={{ color: "#00000040" }}>-</span>);
           } else {
             return (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>);
           }

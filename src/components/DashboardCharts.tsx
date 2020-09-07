@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col } from 'antd';
 
-import 'styles/DashboardCharts.css';
+import 'styles/dashboardCharts.css';
 
 class DashboardCharts extends React.Component {
   render() {
