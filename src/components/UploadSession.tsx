@@ -50,6 +50,9 @@ class UploadSession extends React.Component<PropsType, StateType> {
 
   state: StateType;
   formItemLayout: any;
+  uploadNameRef: React.RefObject<Input>;
+  formRef: React.RefObject<FormInstance<any>>;
+
   constructor(props: PropsType) {
     super(props);
     this.state = {
@@ -65,6 +68,9 @@ class UploadSession extends React.Component<PropsType, StateType> {
       labelCol: { span: 6 },
       wrapperCol: { span: 14 }
     };
+
+    this.formRef = React.createRef<FormInstance>();
+    this.uploadNameRef = React.createRef<Input>();
   }
 
   componentDidMount() {
@@ -88,7 +94,9 @@ class UploadSession extends React.Component<PropsType, StateType> {
               "If you wish to resume the unfinished upload, select the same file and upload again. ",
               "如果您想要继续未完成的上传，请在您的设备上选择该文件并再次点击上传。"
               ),
-            onOk() {},
+            onOk: () => {
+              this.uploadNameRef.current?.setValue(this.state.unfinishedUploadName);
+            },
             onCancel() {},
             okText: this.enzh("OK", "确定"),
             cancelText: this.enzh("Cancel", "取消"),
@@ -141,7 +149,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
     return e && e.fileList;
   };
 
-  formRef = React.createRef<FormInstance>();
+  
 
   enzh = (english: string, chinese: string): string =>
     this.props.language === 'en-us' ? english : chinese;
@@ -196,8 +204,8 @@ class UploadSession extends React.Component<PropsType, StateType> {
 
             <div className="upload-form">
               <Form name="upload-form"
-                {...this.formItemLayout}
                 ref={this.formRef}
+                {...this.formItemLayout}
               >
 
                 <Form.Item
@@ -207,7 +215,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                     { required: true, message: this.enzh("An upload name is required to continue", "请输入数据名") }
                   ]}
                 >
-                  <Input onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "请自定义数据名")} />
+                  <Input ref={this.uploadNameRef} onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "请自定义数据名")} />
                 </Form.Item>
 
                 <Form.Item label={this.enzh("Upload Remarks", "上传备注")} name="note">

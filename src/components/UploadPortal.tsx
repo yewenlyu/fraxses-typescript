@@ -39,6 +39,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
 
   state: StateType;
   formItemLayout: any;
+  uploadNameRef: React.RefObject<Input>;
 
   constructor(props: PropsType) {
     super(props);
@@ -55,10 +56,12 @@ class UploadPortal extends React.Component<PropsType, StateType> {
       labelCol: { span: 6 },
       wrapperCol: { span: 14 }
     };
+
+    this.uploadNameRef = React.createRef();
   }
 
   componentDidMount() {
-    APIUtils.get('/api/data/upload/list', { product: "ev"})
+    APIUtils.get('/api/data/upload/list', { product: "ev" })
       .then(response => {
         if (response.code === 'OK') {
           let uploadList: any[] = (response as APIUtils.SuccessResponseDataType).data.items;
@@ -72,14 +75,16 @@ class UploadPortal extends React.Component<PropsType, StateType> {
               title: this.enzh(
                 `Unfinished upload detected: ${this.state.unfinishedUploadName}`,
                 `检测到尚未完成的上传: ${this.state.unfinishedUploadName}`
-                ),
+              ),
               icon: <ExclamationCircleOutlined />,
               content: this.enzh(
                 "If you wish to resume the unfinished upload, select the same file and upload again. ",
                 "如果您想要继续未完成的上传，请在您的设备上选择该文件并再次点击上传。"
-                ),
-              onOk() {},
-              onCancel() {},
+              ),
+              onOk: () => {
+                this.uploadNameRef.current?.setValue(this.state.unfinishedUploadName)
+              },
+              onCancel() { },
               okText: this.enzh("OK", "确定"),
               cancelText: this.enzh("Cancel", "取消"),
               width: 500
@@ -134,7 +139,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
               { required: true, message: this.enzh("An upload name is required to continue", "请输入数据名") }
             ]}
           >
-            <Input onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "请自定义数据名")} />
+            <Input ref={this.uploadNameRef} onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "请自定义数据名")} />
           </Form.Item>
 
           <Form.Item
@@ -193,7 +198,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
                 this.state.uploadInProgress ? true : false
               }
             >
-              { this.state.uploadInProgress ?
+              {this.state.uploadInProgress ?
                 this.enzh("Upload In Progress", "上传中") :
                 this.enzh("Start Upload", "开始上传")
               }
