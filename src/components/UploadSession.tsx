@@ -97,7 +97,11 @@ class UploadSession extends React.Component<PropsType, StateType> {
                 uploadName: this.state.unfinishedUploadName
               });
             },
-            onCancel() {},
+            onCancel: () => {
+              this.setState({
+                unfinishedUpload: false
+              });
+            },
             okText: this.enzh("OK", "确定"),
             cancelText: this.enzh("Cancel", "取消"),
             width: 500
@@ -302,6 +306,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
             uploadName={this.state.uploadName}
             product={this.state.serviceType}
             uploadControl={this.props.uploadControl}
+            resumeUpload={this.state.unfinishedUpload}
             language={this.props.language}
           /> : null
         }

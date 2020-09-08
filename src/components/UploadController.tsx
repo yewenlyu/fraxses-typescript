@@ -1,17 +1,22 @@
 import React from 'react';
 import AWS from 'aws-sdk';
 import SparkMD5 from 'spark-md5';
-import { Modal, Steps } from 'antd';
+import {
+  Modal,
+  // Steps,
+  Progress
+} from 'antd';
 
 import * as APIUtils from 'utils/api-utils';
 
-const { Step } = Steps;
+// const { Step } = Steps;
 
 type PropsType = {
   file: File;
   uploadName: string;
   product: string;
   uploadControl: (on: boolean) => void;
+  resumeUpload: boolean;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -277,7 +282,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       .then(response => {
         if (response.code === 'OK') {
           this.setState({
-            step: 3
+            step: 2
           });
         } else {
           this.setState({
@@ -304,16 +309,6 @@ class UploadController extends React.Component<PropsType, StateType> {
     });
   }
 
-  stepDescription = (currentStep: number) => {
-    if (this.state.step < currentStep) {
-      return this.enzh("Waiting", "等待中...");
-    } else if (this.state.step > currentStep) {
-      return this.enzh("Finished", "已完成");
-    } else {
-      return this.enzh("Current Progress: ", "当前进度：") + this.state.progress + "%";
-    }
-  }
-
   handleClose = () => {
     this.setState({
       modalVisible: false
@@ -323,10 +318,48 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
   }
 
+  // stepDescription = (currentStep: number) => {
+  //   if (this.state.step < currentStep) {
+  //     return this.enzh("Waiting", "等待中...");
+  //   } else if (this.state.step > currentStep) {
+  //     return this.enzh("Finished", "已完成");
+  //   } else {
+  //     return this.enzh("Current Progress: ", "当前进度：") + this.state.progress + "%";
+  //   }
+  // }
+
   enzh = (english: string, chinese: string): string =>
     this.props.language === 'en-us' ? english : chinese;
 
   render() {
+
+    let progressDescription = () => {
+      if (this.state.step === 0) {
+        return (<p>{this.enzh(`Processing File... ${this.state.progress}%` , `正在读取文件... ${this.state.progress}%`)}</p>);
+      }
+      if (this.state.step === 1) {
+        return (<p>{this.enzh(`Uploading File... ${this.state.progress}%`, `正在上传文件... ${this.state.progress}%`)}</p>);
+      }
+      if (this.state.step === 2) {
+        return (<p>{this.enzh("Upload Finished.", "上传完成。")}</p>);
+      }
+      return (<p>{""}</p>);
+    }
+
+    let progressSubDescription = () => {
+      if (this.state.step === 1 && this.state.progress === 0) {
+        if (this.props.resumeUpload) {
+          return (<p>{this.enzh("Retrieving previous progress...", "正在获取上次上传的进度...")}</p>);
+        } else {
+          return (<p>{this.enzh("Establishing connection with the server...", "正在建立与服务器的连接...")}</p>);
+        }
+      }
+      if (this.state.step === 2) {
+        return (<p>{this.enzh("You may now leave this page.", "您现在可以安全地离开此页。")}</p>);
+      }
+      return (<p>{""}</p>);
+    }
+
     return (
       <div className="UploadController">
         <Modal
@@ -334,9 +367,20 @@ class UploadController extends React.Component<PropsType, StateType> {
           centered
           title={this.enzh("Upload Data", "上传数据文件")}
           footer={null}
+          closable={this.state.step === 2 || this.state.err}
+          maskClosable={false}
           onCancel={this.handleClose}
         >
-          <Steps
+          {progressDescription()}
+          <Progress
+            status={!this.state.err ? (this.state.progress === 100 ? "success" : "active") : "exception"}
+            percent={this.state.progress}
+            strokeColor="#52c41a"
+            showInfo={false}
+          />
+          {progressSubDescription()}
+
+          {/* <Steps
             direction="vertical"
             current={this.state.step}
             percent={this.state.progress}
@@ -354,7 +398,7 @@ class UploadController extends React.Component<PropsType, StateType> {
               title={this.enzh("Upload Finished", "上传完成")}
               description={this.state.step >= 2 ? this.enzh("You may now close the window.", "您可以关闭此对话框") : this.enzh("Waiting", "等待中...")}
             />
-          </Steps>
+          </Steps> */}
         </Modal>
       </div>
     );
