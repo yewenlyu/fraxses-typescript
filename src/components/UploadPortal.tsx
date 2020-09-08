@@ -57,7 +57,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
       wrapperCol: { span: 14 }
     };
 
-    this.uploadNameRef = React.createRef();
+    this.uploadNameRef = React.createRef<Input>();
   }
 
   componentDidMount() {

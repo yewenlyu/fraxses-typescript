@@ -9,6 +9,7 @@ import {
   Dropdown,
   Menu,
   DatePicker,
+  Tooltip
 } from 'antd';
 
 import {
@@ -156,7 +157,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         <Menu.Item key="bulk-choose-algo">{this.enzh("Choose Algorithm", "选择算法")}</Menu.Item>
         <Menu.Item key="bulk-view-result">{this.enzh("View Result", "查看结果")}</Menu.Item>
       </Menu>
-    )
+    );
 
     let filterPopup = (
       <div>
@@ -174,7 +175,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           onOk={this.applyTimeRange}
         />
       </div>
-    )
+    );
 
     let formColumns = [
       {
@@ -203,11 +204,30 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         render: (text: string) => {
           switch (text) {
             case 'uploaded-raw':
-              return (<Tag color="cyan">{this.enzh("Uploaded", "上传完成")}</Tag>);
+              return (
+                <Tag color="cyan">
+                  {this.enzh("Uploaded", "上传完成")}
+                </Tag>
+              );
             case 'uploading':
-              return (<Tag color="orange">{this.enzh("Upload Unfinished", "上传未完成")}</Tag>);
+              return (
+                <Tooltip title={
+                  this.enzh(
+                    "To continue an unfinished upload, upload it again",
+                    "如果您想要继续未完成的上传，请再次上传该文件"
+                  )
+                }>
+                  <Tag color="orange">
+                    {this.enzh("Upload Unfinished", "上传未完成")}
+                  </Tag>
+                </Tooltip>
+              );
             default:
-              return (<Tag color="blue">{this.enzh("Complete", "分析完成")}</Tag>);
+              return (
+                <Tag color="blue">
+                  {this.enzh("Complete", "分析完成")}
+                </Tag>
+              );
           }
         },
       },
@@ -236,7 +256,11 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           icon={<CloudUploadOutlined />}
           onClick={() => this.props.drawerControl(true)}
         >
-          {this.enzh("New Upload", "上传数据")}
+          {
+            this.state.fileList[0]?.state !== 'uploading' ?
+              this.enzh("New Upload", "上传数据") :
+              this.enzh("Resume / New Upload", "新建/继续上传")
+          }
         </Button>
 
         <Dropdown overlay={bulkActionMenu} trigger={['click']}>
@@ -246,7 +270,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
             icon={<UnorderedListOutlined />}
           >
             {this.enzh("Bulk Action", "多选操作")}
-        </Button>
+          </Button>
         </Dropdown>
 
         <Popover

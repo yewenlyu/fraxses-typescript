@@ -1,6 +1,10 @@
 import React from 'react';
 
-import { Layout, Menu, Breadcrumb, } from 'antd';
+import {
+  Layout,
+  Menu,
+  Breadcrumb
+} from 'antd';
 import {
   SisternodeOutlined,
   ExperimentOutlined,
@@ -51,15 +55,15 @@ class Dashboard extends React.Component<PropsType, StateType> {
    */
   componentDidMount() {
     APIUtils.get('/api/account/user/info')
-    .then(response => {
-      if (response.code === 'OK') {
-        this.setState({
-          userInfo: (response as APIUtils.SuccessResponseDataType).data,
-        })
-      } else {
-        APIUtils.handleError(response.code, this.props.language);
-      }
-    })
+      .then(response => {
+        if (response.code === 'OK') {
+          this.setState({
+            userInfo: (response as APIUtils.SuccessResponseDataType).data,
+          })
+        } else {
+          APIUtils.handleError(response.code, this.props.language);
+        }
+      })
   }
 
   // controller methods
@@ -135,14 +139,18 @@ class Dashboard extends React.Component<PropsType, StateType> {
           </Layout>
         </Content>
         <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
-        <UploadSession
-          drawerVisible={this.state.drawerVisible}
-          uploadInProgress={this.state.uploadInProgress}
-          drawerControl={this.drawerControl}
-          uploadControl={this.uploadControl}
-          tab={this.state.tab}
-          language={this.props.language}
-        />
+
+        { this.state.drawerVisible ?
+          <UploadSession
+            drawerVisible={true}
+            uploadInProgress={this.state.uploadInProgress}
+            drawerControl={this.drawerControl}
+            uploadControl={this.uploadControl}
+            tab={this.state.tab}
+            language={this.props.language}
+          /> : null
+        }
+
       </div>
     );
   }
