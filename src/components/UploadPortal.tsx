@@ -7,6 +7,7 @@ import {
   Upload,
   Modal
 } from 'antd';
+import { FormInstance } from 'antd/lib/form';
 import {
   InboxOutlined,
   ExclamationCircleOutlined,
@@ -39,7 +40,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
 
   state: StateType;
   formItemLayout: any;
-  uploadNameRef: React.RefObject<Input>;
+  formRef: React.RefObject<FormInstance<any>>;
 
   constructor(props: PropsType) {
     super(props);
@@ -57,7 +58,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
       wrapperCol: { span: 14 }
     };
 
-    this.uploadNameRef = React.createRef<Input>();
+    this.formRef = React.createRef<FormInstance>();
   }
 
   componentDidMount() {
@@ -82,7 +83,9 @@ class UploadPortal extends React.Component<PropsType, StateType> {
                 "如果您想要继续未完成的上传，请在您的设备上选择该文件并再次点击上传。"
               ),
               onOk: () => {
-                this.uploadNameRef.current?.setValue(this.state.unfinishedUploadName)
+                this.formRef.current?.setFieldsValue({
+                  uploadName: this.state.unfinishedUploadName
+                });
               },
               onCancel() { },
               okText: this.enzh("OK", "确定"),
@@ -127,6 +130,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
     return (
       <div className="UploadPortal">
         <Form
+          ref={this.formRef}
           className="upload-portal-form"
           name="upload-portal-form"
           {...this.formItemLayout}
@@ -139,7 +143,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
               { required: true, message: this.enzh("An upload name is required to continue", "请输入数据名") }
             ]}
           >
-            <Input ref={this.uploadNameRef} onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "请自定义数据名")} />
+            <Input onChange={this.inputUploadName} placeholder={this.enzh("Custom name for this dataset.", "请自定义数据名")} />
           </Form.Item>
 
           <Form.Item

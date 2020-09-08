@@ -139,17 +139,15 @@ class Dashboard extends React.Component<PropsType, StateType> {
           </Layout>
         </Content>
         <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
-
-        { this.state.drawerVisible ?
-          <UploadSession
-            drawerVisible={true}
-            uploadInProgress={this.state.uploadInProgress}
-            drawerControl={this.drawerControl}
-            uploadControl={this.uploadControl}
-            tab={this.state.tab}
-            language={this.props.language}
-          /> : null
-        }
+        
+        <UploadSession
+          drawerVisible={this.state.drawerVisible}
+          uploadInProgress={this.state.uploadInProgress}
+          drawerControl={this.drawerControl}
+          uploadControl={this.uploadControl}
+          tab={this.state.tab}
+          language={this.props.language}
+        />
 
       </div>
     );
