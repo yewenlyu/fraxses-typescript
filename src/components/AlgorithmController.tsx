@@ -41,7 +41,7 @@ class AlgorithmController extends React.Component<PropsType, StateType> {
             algorithmList: (response as APIUtils.SuccessResponseDataType).data.items
           });
         } else {
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       });
   }
@@ -70,7 +70,7 @@ class AlgorithmController extends React.Component<PropsType, StateType> {
     APIUtils.post('/api/data/analysis/start', JSON.stringify(requestBody))
     .then(response => {
       if (response.code !== 'OK') {
-        APIUtils.handleError(response.code, this.props.language);
+        APIUtils.promptError(response.code, this.props.language);
       }
       this.props.algorithmControl(false);
     })

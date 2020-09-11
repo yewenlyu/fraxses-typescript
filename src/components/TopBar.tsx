@@ -33,7 +33,7 @@ class TopBar extends React.Component<PropsType> {
         if (response.code === 'OK') {
           this.props.handleSignout();
         } else {
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       });
   }

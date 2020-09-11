@@ -108,7 +108,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
           });
         }
       } else {
-        APIUtils.handleError(response.code, this.props.language)
+        APIUtils.promptError(response.code, this.props.language)
       }
     })
   }

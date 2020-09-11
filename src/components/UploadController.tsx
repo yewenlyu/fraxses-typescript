@@ -25,6 +25,7 @@ type StateType = {
   step: number;
   progress: number;
   err: boolean;
+  errMessage: string;
 }
 
 class UploadController extends React.Component<PropsType, StateType> {
@@ -35,7 +36,8 @@ class UploadController extends React.Component<PropsType, StateType> {
       modalVisible: false,
       step: 0,
       progress: 0,
-      err: false
+      err: false,
+      errMessage: ""
     };
   }
 
@@ -64,7 +66,7 @@ class UploadController extends React.Component<PropsType, StateType> {
             this.setState({
               err: true
             })
-            APIUtils.handleError(response.code, this.props.language);
+            APIUtils.promptError(response.code, this.props.language);
           } 
           else {
             let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
@@ -80,7 +82,9 @@ class UploadController extends React.Component<PropsType, StateType> {
             try {
               this.uploadFile(s3Client, awsMetaData, file, fileMD5)
             } catch (err) {
-              this.setState({ err: true });
+              this.setState({
+                err: true
+              });
               console.warn(err);
             }
           }
@@ -92,7 +96,9 @@ class UploadController extends React.Component<PropsType, StateType> {
     try {
       return await this.md5Hash(file);
     } catch (err) {
-      this.setState({ err: true });
+      this.setState({
+        err: true
+      });
       console.log(err);
     }
   }
@@ -117,18 +123,25 @@ class UploadController extends React.Component<PropsType, StateType> {
         if (currentChunk < chunks) {
           loadNext();
         } else {
-          console.log('finished loading');
+          console.log('MD5Hash: Finished loading');
           resolve(spark.end());
         }
       };
 
       fileReader.onerror = () => {
-        this.setState({ err: true });
-        console.warn('oops, something went wrong.');
+        console.warn('MD5Hash: Something went wrong.');
+        this.setState({
+          err: true
+        });
+        reject();
       };
 
       fileReader.onabort = () => {
-        console.warn('abort.');
+        console.warn('MD5Hash: Abort.');
+        this.setState({
+          err: true
+        });
+        reject();
       };
 
       function loadNext() {
@@ -227,18 +240,25 @@ class UploadController extends React.Component<PropsType, StateType> {
 
           loadNext();
         } else {
-          console.log('finished loading');
+          console.log('MD5Hash: Finished loading');
           resolve(partInfo)
         }
       };
 
       fileReader.onerror = () => {
-        this.setState({ err: true });
-        console.warn('oops, something went wrong.');
+        console.warn('MD5Hash: Something went wrong.');
+        this.setState({
+          err: true
+        });
+        reject();
       };
 
       fileReader.onabort = () => {
-        console.warn('abort.');
+        console.warn('MD5Hash: Abort.');
+        this.setState({
+          err: true
+        });
+        reject();
       };
 
       function loadNext() {
@@ -265,7 +285,7 @@ class UploadController extends React.Component<PropsType, StateType> {
           this.setState({
             err: true
           })
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }
@@ -288,7 +308,7 @@ class UploadController extends React.Component<PropsType, StateType> {
           this.setState({
             err: true
           })
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }
@@ -297,12 +317,14 @@ class UploadController extends React.Component<PropsType, StateType> {
     return new Promise((resolve, reject) => {
       s3[functionName](params, (err: any, data: any) => {
         if (err) {
-          this.setState({ err: true });
-          console.log('error: ', err);
+          this.setState({
+            err: true
+          });
+          console.warn("Fetch: S3." + functionName, params, "error: " + err);
           resolve(err);
         }
         else {
-          console.log('data: ', data);
+          console.log("Fetch: S3." + functionName, params, "data: " + data);
           resolve(data);
         }
       })
@@ -313,7 +335,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     this.setState({
       modalVisible: false
     });
-    if (this.state.step >= 2) {
+    if (this.state.step >= 2 || this.state.err) {
       this.props.uploadControl(false);
     }
   }
@@ -354,6 +376,9 @@ class UploadController extends React.Component<PropsType, StateType> {
           return (<p>{this.enzh("Establishing connection with the server...", "正在建立与服务器的连接...")}</p>);
         }
       }
+      if (this.state.err) {
+      return (<p>{this.enzh("Please close this modal and try again。", "请关闭对话框并重试。")}</p>)
+      }
       if (this.state.step === 2) {
         return (<p>{this.enzh("You may now leave this page.", "您现在可以安全地离开此页。")}</p>);
       }
@@ -373,9 +398,9 @@ class UploadController extends React.Component<PropsType, StateType> {
         >
           {progressDescription()}
           <Progress
-            status={!this.state.err ? (this.state.progress === 100 ? "success" : "active") : "exception"}
+            status="active"
             percent={this.state.progress}
-            strokeColor="#52c41a"
+            strokeColor={!this.state.err ? "#52c41a" : 	"#ffa500"}
             showInfo={false}
           />
           {progressSubDescription()}

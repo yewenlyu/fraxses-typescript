@@ -111,18 +111,18 @@ export const get = async (url: string, params?: ParamsType): Promise<ResponseDat
 /**
  * Utility function to handle different error
  */
-export const handleError = (errorCode: string, language: 'en-us' | 'zh-hans') => {
+export const promptError = (errorCode: string, language: 'en-us' | 'zh-hans') => {
 
   if (messageLanguageMap.get(errorCode) === undefined) {
-    message.error(messageLanguageMap.get("default") + errorCode)
+    message.error(messageLanguageMap.get("default") + errorCode, 10)
     return;
   }
 
   if (language === 'en-us') {
-    message.warn(messageLanguageMap.get(errorCode)?.["en-us"]);
+    message.warn(messageLanguageMap.get(errorCode)?.["en-us"], 10);
   }
   else if (language === 'zh-hans') {
-    message.warn(messageLanguageMap.get(errorCode)?.["zh-hans"]);
+    message.warn(messageLanguageMap.get(errorCode)?.["zh-hans"], 10);
   }
 }
 
@@ -184,6 +184,13 @@ export const messageLanguageMap: LanguageMapType = new Map([
     {
       "en-us": "Product permission denied. Please contact administrator. ",
       "zh-hans": "您暂时没有使用此服务的权限，请联系管理员。"
+    }
+  ],
+  [
+    "Data Uploaded",
+    {
+      "en-us": "This file has already been uploaded, please double check and try again. ",
+      "zh-hans": "该文件已被上传，请再次检查后重试。"
     }
   ],
   [

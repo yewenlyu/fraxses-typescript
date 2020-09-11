@@ -25,7 +25,7 @@ class Signin extends React.Component<PropsType> {
         if (response.code === 'OK') {
           this.props.handleSignin();
         } else {
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }

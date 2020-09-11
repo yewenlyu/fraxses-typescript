@@ -99,7 +99,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
             filteredFileList: uploadList
           })
         } else {
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }

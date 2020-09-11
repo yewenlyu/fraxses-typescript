@@ -61,7 +61,7 @@ class Dashboard extends React.Component<PropsType, StateType> {
             userInfo: (response as APIUtils.SuccessResponseDataType).data,
           })
         } else {
-          APIUtils.handleError(response.code, this.props.language);
+          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }
