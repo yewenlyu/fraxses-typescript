@@ -23,7 +23,7 @@ class App extends React.Component<{}, StateType> {
     super(props);
     this.state = {
       authorized: false,
-      language: 'en-us' as const
+      language: 'en-us'
     }
 
     this.handleSignout = this.handleSignout.bind(this);
@@ -56,7 +56,7 @@ class App extends React.Component<{}, StateType> {
   mountSignin = () => {
     return this.state.authorized ?
       /** Upload Portal MOUNT_FLAG */
-      <Redirect to="/app" /> :
+      <Redirect to="/home" /> :
       <Signin
         handleSignin={this.handleSignin}
         language={this.state.language}
