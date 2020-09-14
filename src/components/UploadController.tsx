@@ -2,6 +2,7 @@ import React from 'react';
 import AWS from 'aws-sdk';
 import SparkMD5 from 'spark-md5';
 import {
+  Button,
   Modal,
   // Steps,
   Progress
@@ -67,7 +68,7 @@ class UploadController extends React.Component<PropsType, StateType> {
               err: true
             })
             APIUtils.promptError(response.code, this.props.language);
-          } 
+          }
           else {
             let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
             console.log("AWS metadata acquired", awsMetaData)
@@ -357,7 +358,7 @@ class UploadController extends React.Component<PropsType, StateType> {
 
     let progressDescription = () => {
       if (this.state.step === 0) {
-        return (<p>{this.enzh(`Processing File... ${this.state.progress}%` , `正在读取文件... ${this.state.progress}%`)}</p>);
+        return (<p>{this.enzh(`Processing File... ${this.state.progress}%`, `正在读取文件... ${this.state.progress}%`)}</p>);
       }
       if (this.state.step === 1) {
         return (<p>{this.enzh(`Uploading File... ${this.state.progress}%`, `正在上传文件... ${this.state.progress}%`)}</p>);
@@ -377,7 +378,7 @@ class UploadController extends React.Component<PropsType, StateType> {
         }
       }
       if (this.state.err) {
-      return (<p>{this.enzh("Please close this modal and try again。", "请关闭对话框并重试。")}</p>)
+        return (<p>{this.enzh("Please close this modal and try again。", "请关闭对话框并重试。")}</p>)
       }
       if (this.state.step === 2) {
         return (<p>{this.enzh("You may now leave this page.", "您现在可以安全地离开此页。")}</p>);
@@ -391,16 +392,28 @@ class UploadController extends React.Component<PropsType, StateType> {
           visible={this.state.modalVisible}
           centered
           title={this.enzh("Upload Data", "上传数据文件")}
-          footer={null}
           closable={this.state.step === 2 || this.state.err}
           maskClosable={false}
           onCancel={this.handleClose}
+          footer={[
+            <Button
+              key="primary"
+              type="primary"
+              loading={!this.state.err && this.state.step <= 1}
+              disabled={!this.state.err && this.state.step <= 1}
+              onClick={this.handleClose}
+            >
+              {
+                (!this.state.err && this.state.step <= 1) ? this.enzh("Uploading", "上传中") : this.enzh("Return", "返回")
+              }
+            </Button>
+          ]}
         >
           {progressDescription()}
           <Progress
             status="active"
             percent={this.state.progress}
-            strokeColor={!this.state.err ? "#52c41a" : 	"#ffa500"}
+            strokeColor={!this.state.err ? "#52c41a" : "#ffa500"}
             showInfo={false}
           />
           {progressSubDescription()}

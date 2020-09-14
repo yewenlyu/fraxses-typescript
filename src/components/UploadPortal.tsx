@@ -103,6 +103,12 @@ class UploadPortal extends React.Component<PropsType, StateType> {
       })
   }
 
+  componentDidUpdate(prevProps: PropsType, prevState: StateType) {
+    if (prevState.uploadInProgress && !this.state.uploadInProgress) {
+      this.formRef.current?.resetFields();
+    }
+  }
+
   /** Controller Functions */
   uploadControl = (on: boolean) => this.setState({ uploadInProgress: on });
   inputUploadName = (e: any) => this.setState({ uploadName: e.target.value });

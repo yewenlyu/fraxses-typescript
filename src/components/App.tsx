@@ -55,8 +55,8 @@ class App extends React.Component<{}, StateType> {
 
   mountSignin = () => {
     return this.state.authorized ?
-      // Upload Portal mount flag
-      <Redirect to="/home" /> :
+      /** Upload Portal MOUNT_FLAG */
+      <Redirect to="/app" /> :
       <Signin
         handleSignin={this.handleSignin}
         language={this.state.language}
