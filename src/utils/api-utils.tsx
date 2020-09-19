@@ -111,19 +111,24 @@ export const get = async (url: string, params?: ParamsType): Promise<ResponseDat
 /**
  * Utility function to handle different error
  */
-export const promptError = (errorCode: string, language: 'en-us' | 'zh-hans') => {
-
-  if (messageLanguageMap.get(errorCode) === undefined) {
-    message.error(messageLanguageMap.get("default") + errorCode, 10)
-    return;
-  }
-
+export const promptError = (errorCode: string, language: 'en-us' | 'zh-hans'): string => {
   if (language === 'en-us') {
+    if (messageLanguageMap.get(errorCode) === undefined) {
+      message.error(messageLanguageMap.get("default")?.["en-us"] + errorCode, 10)
+      return messageLanguageMap.get("default")?.["en-us"] + errorCode;
+    }
     message.warn(messageLanguageMap.get(errorCode)?.["en-us"], 10);
+    return (messageLanguageMap.get(errorCode)?.["en-us"] as string);
   }
   else if (language === 'zh-hans') {
+    if (messageLanguageMap.get(errorCode) === undefined) {
+      message.error(messageLanguageMap.get("default")?.["zh-hans"] + errorCode, 10)
+      return messageLanguageMap.get("default")?.["zh-hans"] + errorCode;
+    }
     message.warn(messageLanguageMap.get(errorCode)?.["zh-hans"], 10);
+    return (messageLanguageMap.get(errorCode)?.["zh-hans"] as string);
   }
+  return "";
 }
 
 /**

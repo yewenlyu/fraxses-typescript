@@ -65,9 +65,10 @@ class UploadController extends React.Component<PropsType, StateType> {
         .then(response => {
           if (response.code !== 'OK') {
             this.setState({
-              err: true
+              err: true,
+              errMessage: APIUtils.promptError(response.code, this.props.language)
             })
-            APIUtils.promptError(response.code, this.props.language);
+            
           }
           else {
             let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
@@ -220,7 +221,6 @@ class UploadController extends React.Component<PropsType, StateType> {
       }
 
       fileReader.onload = async (e: any) => {
-
         if (currentChunk < chunks) {
           var params = Object.assign({
             Body: new Uint8Array(e.target.result),
@@ -241,13 +241,13 @@ class UploadController extends React.Component<PropsType, StateType> {
 
           loadNext();
         } else {
-          console.log('MD5Hash: Finished loading');
+          console.warn('fileReader: Finished loading');
           resolve(partInfo)
         }
       };
 
       fileReader.onerror = () => {
-        console.warn('MD5Hash: Something went wrong.');
+        console.warn('fileReader: Something went wrong.');
         this.setState({
           err: true
         });
@@ -255,7 +255,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       };
 
       fileReader.onabort = () => {
-        console.warn('MD5Hash: Abort.');
+        console.warn('fileReader: Abort.');
         this.setState({
           err: true
         });
@@ -284,9 +284,9 @@ class UploadController extends React.Component<PropsType, StateType> {
       .then(response => {
         if (response.code !== 'OK') {
           this.setState({
-            err: true
+            err: true,
+            errMessage: APIUtils.promptError(response.code, this.props.language)
           })
-          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }
@@ -307,9 +307,9 @@ class UploadController extends React.Component<PropsType, StateType> {
           });
         } else {
           this.setState({
-            err: true
+            err: true,
+            errMessage: APIUtils.promptError(response.code, this.props.language)
           })
-          APIUtils.promptError(response.code, this.props.language);
         }
       })
   }
@@ -370,15 +370,18 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
 
     let progressSubDescription = () => {
+      if (this.state.err) {
+        if (this.state.errMessage !== "") {
+        return (<p>{this.state.errMessage}</p>)
+        }
+        return (<p>{this.enzh("Please close this modal and try again。", "请关闭对话框并重试。")}</p>)
+      }
       if (this.state.step === 1 && this.state.progress === 0) {
         if (this.props.resumeUpload) {
           return (<p>{this.enzh("Retrieving previous progress...", "正在获取上次上传的进度...")}</p>);
         } else {
           return (<p>{this.enzh("Establishing connection with the server...", "正在建立与服务器的连接...")}</p>);
         }
-      }
-      if (this.state.err) {
-        return (<p>{this.enzh("Please close this modal and try again。", "请关闭对话框并重试。")}</p>)
       }
       if (this.state.step === 2) {
         return (<p>{this.enzh("You may now leave this page.", "您现在可以安全地离开此页。")}</p>);
