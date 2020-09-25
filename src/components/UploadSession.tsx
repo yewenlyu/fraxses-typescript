@@ -307,6 +307,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
             product={this.state.serviceType}
             uploadControl={this.props.uploadControl}
             resumeUpload={this.state.unfinishedUpload}
+            parallelUpload={false}
             language={this.props.language}
           /> : null
         }

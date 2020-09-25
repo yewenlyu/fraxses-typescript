@@ -18,6 +18,7 @@ type PropsType = {
   product: string;
   uploadControl: (on: boolean) => void;
   resumeUpload: boolean;
+  parallelUpload: boolean;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -42,7 +43,9 @@ class UploadController extends React.Component<PropsType, StateType> {
     };
   }
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
+
+    // Step 1 - MD5 Hash
     let file = this.props.file;
     console.log("File recieved", file)
 
@@ -50,74 +53,71 @@ class UploadController extends React.Component<PropsType, StateType> {
       modalVisible: true
     });
 
-    this.getFileMD5(file).then(fileMD5 => {
-      let fileKey = fileMD5;
-      console.log("MD5 hash complete", fileMD5)
-      let file_info = {
-        file_key: fileKey,
-        file_name: file.name,
-        file_size: file.size,
-        upload_name: this.props.uploadName,
-        product: this.props.product
-      }
+    let fileMD5 = await this.md5Hash(file);
+    console.log("MD5 hash complete", fileMD5);
 
-      APIUtils.post('/api/data/multipart_upload/init', JSON.stringify(file_info))
-        .then(response => {
-          if (response.code !== 'OK') {
-            this.setState({
-              err: true,
-              errMessage: APIUtils.promptError(response.code, this.props.language)
-            })
-            
-          }
-          else {
-            let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
-            console.log("AWS metadata acquired", awsMetaData)
+    // Step 2 - Initialize S3 Client
+    let file_info = {
+      file_key: fileMD5,
+      file_name: file.name,
+      file_size: file.size,
+      upload_name: this.props.uploadName,
+      product: this.props.product
+    }
 
-            let s3Client = this.getS3Client(awsMetaData.authorization);
-
-            this.setState({
-              step: 1,
-              progress: 0
-            });
-
-            try {
-              this.uploadFile(s3Client, awsMetaData, file, fileMD5)
-            } catch (err) {
-              this.setState({
-                err: true
-              });
-              console.warn(err);
-            }
-          }
-        });
-    });
-  }
-
-  getFileMD5 = async (file: File) => {
-    try {
-      return await this.md5Hash(file);
-    } catch (err) {
+    let response = await APIUtils.post('/api/data/multipart_upload/init', JSON.stringify(file_info));
+    if (response.code !== 'OK') {
       this.setState({
-        err: true
+        err: true,
+        errMessage: APIUtils.promptError(response.code, this.props.language)
       });
-      console.log(err);
+      throw new Error(response.code);
+    }
+
+    let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
+    console.log("AWS metadata acquired", awsMetaData);
+
+    let s3Client = this.getS3Client(awsMetaData.authorization);
+
+    // Step 3 - Upload file
+    this.setState({ step: 1, progress: 0 });
+
+    let millisToMinAndSec = (millis: number): string => {
+      let min = Math.floor(millis / 60000);
+      let sec = ((millis % 60000) / 1000).toFixed(0);
+      return min + ":" + sec;
+    }
+
+    try {
+      let startTime = performance.now();
+      await this.uploadFile(s3Client, awsMetaData, file, fileMD5)
+      let endTime = performance.now();
+      console.warn("Elapsed time: " + millisToMinAndSec(endTime - startTime));
+    } catch (err) {
+      this.setState({ err: true });
+      console.warn(err);
     }
   }
 
-  md5Hash = (file: File) => {
+  md5Hash = async (file: File): Promise<any> => {
     return new Promise((resolve, reject) => {
-      var blobSlice = File.prototype.slice,
+      let blobSlice = File.prototype.slice,
         chunkSize = 5 * 1024 * 1024,
         chunks = Math.ceil(file.size / chunkSize),
         currentChunk = 0,
         spark = new SparkMD5.ArrayBuffer(),
         fileReader = new FileReader();
 
+      let loadNext = () => {
+        let start = currentChunk * chunkSize,
+          end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+        fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+      }
+
       fileReader.onload = (e: any) => {
         spark.append(e.target.result);
-        currentChunk++;
 
+        currentChunk++;
         this.setState({
           progress: parseFloat((currentChunk / chunks * 100).toFixed(2))
         })
@@ -132,31 +132,22 @@ class UploadController extends React.Component<PropsType, StateType> {
 
       fileReader.onerror = () => {
         console.warn('MD5Hash: Something went wrong.');
-        this.setState({
-          err: true
-        });
+        this.setState({ err: true });
         reject();
       };
 
       fileReader.onabort = () => {
         console.warn('MD5Hash: Abort.');
-        this.setState({
-          err: true
-        });
+        this.setState({ err: true });
         reject();
       };
 
-      function loadNext() {
-        let start = currentChunk * chunkSize,
-          end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
-        fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
-      }
       loadNext();
     })
   }
 
-  getS3Client = (cognitoIdentityCredentials: any) => {
-    // var identity_provider = cognitoIdentityCredentials.identity_provider;
+  getS3Client = (cognitoIdentityCredentials: any): AWS.S3 => {
+    // let identity_provider = cognitoIdentityCredentials.identity_provider;
     let credentials = new AWS.CognitoIdentityCredentials({
       IdentityPoolId: cognitoIdentityCredentials.identity_pool_id,
       IdentityId: cognitoIdentityCredentials.identity_id,
@@ -183,37 +174,45 @@ class UploadController extends React.Component<PropsType, StateType> {
     return s3;
   }
 
-  uploadFile = async (s3Client: any, awsMetaData: any, file: any, fileKey: any) => {
+  uploadFile = async (s3Client: AWS.S3, awsMetaData: any, file: any, fileKey: any) => {
     let uploadConfig = {
       Key: fileKey,
       Bucket: awsMetaData.bucket,
       UploadId: awsMetaData.remote_upload_id
     }
-
     console.log("Upload configuration generated", uploadConfig);
 
     let fullPartInfo = await this.uploadPart(s3Client, uploadConfig, awsMetaData.id, file, awsMetaData.parts);
     console.log("Full part infomation generated", fullPartInfo);
+
     let params = Object.assign({ 'MultipartUpload': fullPartInfo }, uploadConfig);
     console.log("Params genterated", params);
+
     let result = await this.asyncS3Fetch(s3Client, 'completeMultipartUpload', params);
     console.log("Result params returned", result);
-    this.completeUpload(awsMetaData.id, fileKey, result['ETag'], result['Location']);
+
+    await this.completeUpload(awsMetaData.id, fileKey, result['ETag'], result['Location']);
   }
 
-  uploadPart = async (s3: any, config: any, fileId: any, file: any, parts: any) => {
+  uploadPart = async (s3: AWS.S3, config: any, fileId: any, file: any, parts: any) => {
     return new Promise((resolve, reject) => {
 
-      var blobSlice = File.prototype.slice,
+      let blobSlice = File.prototype.slice,
         chunkSize = 5 * 1024 * 1024,
         chunks = Math.ceil(file.size / chunkSize),
         currentChunk = parts.length > 0 ? parts[parts.length - 1]['part_number'] : 0,
         fileReader = new FileReader(),
-        partInfo: any = {
+        partInfo: { 'Parts': Array<any> } = {
           'Parts': []
         };
 
-      for (var i of parts) {
+      let loadNext = () => {
+        let start = currentChunk * chunkSize,
+          end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+        fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+      }
+
+      for (let i of parts) {
         partInfo['Parts'].push({
           PartNumber: i['part_number'],
           ETag: i['etag']
@@ -222,17 +221,19 @@ class UploadController extends React.Component<PropsType, StateType> {
 
       fileReader.onload = async (e: any) => {
         if (currentChunk < chunks) {
-          var params = Object.assign({
+          let params = Object.assign({
             Body: new Uint8Array(e.target.result),
             PartNumber: currentChunk + 1,
           }, config);
+
           let response = await this.asyncS3Fetch(s3, 'uploadPart', params);
+
           partInfo['Parts'].push({
             PartNumber: params['PartNumber'],
             ETag: response.ETag
           })
 
-          this.recordPart(fileId, params['PartNumber'], response.ETag, params['Body'].length);
+          await this.recordPart(fileId, params['PartNumber'], response.ETag, params['Body'].length);
 
           currentChunk++;
           this.setState({
@@ -241,7 +242,7 @@ class UploadController extends React.Component<PropsType, StateType> {
 
           loadNext();
         } else {
-          console.warn('fileReader: Finished loading');
+          console.log('fileReader: Finished loading');
           resolve(partInfo)
         }
       };
@@ -262,25 +263,19 @@ class UploadController extends React.Component<PropsType, StateType> {
         reject();
       };
 
-      function loadNext() {
-        var start = currentChunk * chunkSize,
-          end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
-
-        fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
-      }
       loadNext();
     })
   }
 
-  recordPart = (fileId: string, partNumber: number, partETag: string, partSize: number) => {
-    var requestData = {
+  recordPart = async (fileId: string, partNumber: number, partETag: string, partSize: number) => {
+    let requestData = {
       upload_id: fileId,
       part_number: partNumber,
       part_etag: partETag,
       part_size: partSize
     }
 
-    APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
+    return APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
       .then(response => {
         if (response.code !== 'OK') {
           this.setState({
@@ -291,7 +286,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       })
   }
 
-  completeUpload = (uploadId: string, fileKey: string, etag: string, location: string) => {
+  completeUpload = async (uploadId: string, fileKey: string, etag: string, location: string) => {
     let requestData = {
       upload_id: uploadId,
       file_key: fileKey,
@@ -299,7 +294,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       location: location
     }
 
-    APIUtils.post('/api/data/multipart_upload/complete', JSON.stringify(requestData))
+    return APIUtils.post('/api/data/multipart_upload/complete', JSON.stringify(requestData))
       .then(response => {
         if (response.code === 'OK') {
           this.setState({
@@ -318,14 +313,12 @@ class UploadController extends React.Component<PropsType, StateType> {
     return new Promise((resolve, reject) => {
       s3[functionName](params, (err: any, data: any) => {
         if (err) {
-          this.setState({
-            err: true
-          });
-          console.warn("Fetch: S3." + functionName, params, "error: " + err);
+          this.setState({ err: true });
+          console.warn("Fetch: S3." + functionName, params, "error: ", err);
           resolve(err);
         }
         else {
-          console.log("Fetch: S3." + functionName, params, "data: " + data);
+          console.log("Fetch: S3." + functionName, params, "data: ", data);
           resolve(data);
         }
       })
@@ -336,9 +329,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     this.setState({
       modalVisible: false
     });
-    if (this.state.step >= 2 || this.state.err) {
-      this.props.uploadControl(false);
-    }
+    this.props.uploadControl(false);
   }
 
   // stepDescription = (currentStep: number) => {
@@ -372,9 +363,9 @@ class UploadController extends React.Component<PropsType, StateType> {
     let progressSubDescription = () => {
       if (this.state.err) {
         if (this.state.errMessage !== "") {
-        return (<p>{this.state.errMessage}</p>)
+          return (<p>{this.state.errMessage}</p>)
         }
-        return (<p>{this.enzh("Please close this modal and try again。", "请关闭对话框并重试。")}</p>)
+        return (<p>{this.enzh("Please close this modal and try again.", "请关闭对话框并重试。")}</p>)
       }
       if (this.state.step === 1 && this.state.progress === 0) {
         if (this.props.resumeUpload) {
@@ -397,17 +388,16 @@ class UploadController extends React.Component<PropsType, StateType> {
           title={this.enzh("Upload Data", "上传数据文件")}
           closable={this.state.step === 2 || this.state.err}
           maskClosable={false}
+          destroyOnClose={true}
           onCancel={this.handleClose}
           footer={[
             <Button
               key="primary"
-              type="primary"
-              loading={!this.state.err && this.state.step <= 1}
-              disabled={!this.state.err && this.state.step <= 1}
+              type={(!this.state.err && this.state.step <= 1) ? "default" : "primary"}
               onClick={this.handleClose}
             >
               {
-                (!this.state.err && this.state.step <= 1) ? this.enzh("Uploading", "上传中") : this.enzh("Return", "返回")
+                (!this.state.err && this.state.step <= 1) ? this.enzh("Cancel", "取消") : this.enzh("Return", "返回")
               }
             </Button>
           ]}
