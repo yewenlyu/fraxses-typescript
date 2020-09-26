@@ -9,13 +9,15 @@ import {
   Select,
   Switch,
   Upload,
-  Modal
+  Modal,
+  Tooltip
 } from "antd";
 import { FormInstance } from 'antd/lib/form';
 import {
   InboxOutlined,
   CloudUploadOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  QuestionCircleOutlined
 } from "@ant-design/icons";
 
 import 'styles/uploadSession.css';
@@ -44,6 +46,7 @@ type StateType = {
   isAccident: boolean;
   unfinishedUpload: boolean;
   unfinishedUploadName: string;
+  parallelUpload: boolean;
 }
 
 class UploadSession extends React.Component<PropsType, StateType> {
@@ -60,7 +63,8 @@ class UploadSession extends React.Component<PropsType, StateType> {
       serviceType: "ev",
       isAccident: false,
       unfinishedUpload: false,
-      unfinishedUploadName: ""
+      unfinishedUploadName: "",
+      parallelUpload: false
     };
 
     this.formItemLayout = {
@@ -73,49 +77,49 @@ class UploadSession extends React.Component<PropsType, StateType> {
 
   componentDidMount() {
     APIUtils.get('/api/data/upload/list', { product: this.state.serviceType })
-    .then(response => {
-      if (response.code === 'OK') {
-        let uploadList: any[] = (response as APIUtils.SuccessResponseDataType).data.items;
-        if (uploadList.length !== 0 && uploadList[0].state === 'uploading') {
-          this.setState({
-            unfinishedUpload: true,
-            unfinishedUploadName: (uploadList[0].upload_name)
-          });
+      .then(response => {
+        if (response.code === 'OK') {
+          let uploadList: any[] = (response as APIUtils.SuccessResponseDataType).data.items;
+          if (uploadList.length !== 0 && uploadList[0].state === 'uploading') {
+            this.setState({
+              unfinishedUpload: true,
+              unfinishedUploadName: (uploadList[0].upload_name)
+            });
 
-          confirm({
-            title: this.enzh(
-              `Unfinished upload detected: ${this.state.unfinishedUploadName}`,
-              `检测到尚未完成的上传: ${this.state.unfinishedUploadName}`
+            confirm({
+              title: this.enzh(
+                `Unfinished upload detected: ${this.state.unfinishedUploadName}`,
+                `检测到尚未完成的上传: ${this.state.unfinishedUploadName}`
               ),
-            icon: <ExclamationCircleOutlined />,
-            content: this.enzh(
-              "If you wish to resume the unfinished upload, select the same file and upload again. ",
-              "如果您想要继续未完成的上传，请在您的设备上选择该文件并再次点击上传。"
+              icon: <ExclamationCircleOutlined />,
+              content: this.enzh(
+                "If you wish to resume the unfinished upload, select the same file and upload again. ",
+                "如果您想要继续未完成的上传，请在您的设备上选择该文件并再次点击上传。"
               ),
-            onOk: () => {
-              this.formRef.current?.setFieldsValue({
-                uploadName: this.state.unfinishedUploadName
-              });
-            },
-            onCancel: () => {
-              this.setState({
-                unfinishedUpload: false
-              });
-            },
-            okText: this.enzh("OK", "确定"),
-            cancelText: this.enzh("Cancel", "取消"),
-            width: 500
-          });
+              onOk: () => {
+                this.formRef.current?.setFieldsValue({
+                  uploadName: this.state.unfinishedUploadName
+                });
+              },
+              onCancel: () => {
+                this.setState({
+                  unfinishedUpload: false
+                });
+              },
+              okText: this.enzh("OK", "确定"),
+              cancelText: this.enzh("Cancel", "取消"),
+              width: 500
+            });
+          }
+        } else {
+          APIUtils.promptError(response.code, this.props.language)
         }
-      } else {
-        APIUtils.promptError(response.code, this.props.language)
-      }
-    })
+      })
   }
 
   componentDidUpdate(prevProps: PropsType) {
     if (this.props.tab !== prevProps.tab) {
-      switch(this.props.tab) {
+      switch (this.props.tab) {
         case "EV Management":
           this.setState({ serviceType: "ev" });
           break;
@@ -132,6 +136,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
   inputUploadName = (e: any) => this.setState({ uploadName: e.target.value });
   selectService = (value: string) => this.setState({ serviceType: value });
   setAccident = (checked: boolean) => this.setState({ isAccident: checked });
+  setParallelUpload = (checked: boolean) => this.setState({ parallelUpload: checked });
   onSubmit = (values: any) => {
     console.log("Recieved values from form:", values);
     this.setState({
@@ -153,7 +158,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
     return e && e.fileList;
   };
 
-  
+
 
   enzh = (english: string, chinese: string): string =>
     this.props.language === 'en-us' ? english : chinese;
@@ -189,10 +194,10 @@ class UploadSession extends React.Component<PropsType, StateType> {
                   style={{ marginRight: 8 }}
                   onClick={() => {
                     this.formRef.current?.validateFields()
-                    .then(this.onSubmit)
-                    .catch(errorInfo => {
-                      console.warn("Form validation error: ", errorInfo);
-                    })
+                      .then(this.onSubmit)
+                      .catch(errorInfo => {
+                        console.warn("Form validation error: ", errorInfo);
+                      })
                   }}
                   disabled={!this.state.fileData}
                 >
@@ -283,11 +288,30 @@ class UploadSession extends React.Component<PropsType, StateType> {
                       </p>
                       <p className="ant-upload-text">
                         {this.enzh("Click or drag file to this area to upload", "点击或拖拽文件至此区域")}
-                    </p>
+                      </p>
                     </Upload.Dragger>
                   </Form.Item>
                 </Form.Item>
-
+                <Form.Item
+                  name="parallel"
+                  label={
+                    <span>
+                      {this.enzh("Parallel Upload ", "多线程上传 ")}
+                      <Tooltip
+                        placement="bottom"
+                        title={this.enzh(`Parallel upload MAY increase your upload speed,
+                    if you have enough bandwidth. \nHowever, a progress bar won't be displayed
+                    if you choose this option.`,
+                          `如果您的网速足够，勾选多线程上传将提升上传速度，但同时您将无法查看上传进度。`)}
+                      >
+                        <QuestionCircleOutlined />
+                      </Tooltip>
+                    </span>
+                  }
+                  valuePropName="checked"
+                >
+                  <Switch onChange={this.setParallelUpload} />
+                </Form.Item>
                 <Form.Item
                   wrapperCol={{
                     span: 12,
@@ -307,7 +331,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
             product={this.state.serviceType}
             uploadControl={this.props.uploadControl}
             resumeUpload={this.state.unfinishedUpload}
-            parallelUpload={false}
+            parallelUpload={this.state.parallelUpload}
             language={this.props.language}
           /> : null
         }

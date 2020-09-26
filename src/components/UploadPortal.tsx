@@ -5,13 +5,16 @@ import {
   Select,
   Button,
   Upload,
-  Modal
+  Modal,
+  Tooltip,
+  Switch
 } from 'antd';
 import { FormInstance } from 'antd/lib/form';
 import {
   InboxOutlined,
   ExclamationCircleOutlined,
-  CloudUploadOutlined
+  CloudUploadOutlined,
+  QuestionCircleOutlined
 } from "@ant-design/icons";
 
 import 'styles/uploadPortal.css';
@@ -34,6 +37,7 @@ type StateType = {
   uploadInProgress: boolean;
   unfinishedUpload: boolean;
   unfinishedUploadName: string;
+  parallelUpload: boolean;
 }
 
 class UploadPortal extends React.Component<PropsType, StateType> {
@@ -50,7 +54,8 @@ class UploadPortal extends React.Component<PropsType, StateType> {
       serviceType: "ev",
       uploadInProgress: false,
       unfinishedUpload: false,
-      unfinishedUploadName: ""
+      unfinishedUploadName: "",
+      parallelUpload: false
     };
 
     this.formItemLayout = {
@@ -114,6 +119,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
   inputUploadName = (e: any) => this.setState({ uploadName: e.target.value });
   selectService = (value: string) => this.setState({ serviceType: value });
   resumeUploadControl = (on: boolean) => this.setState({ unfinishedUpload: on });
+  setParallelUpload = (checked: boolean) => this.setState({ parallelUpload: checked });
   onSubmit = (values: any) => {
     this.setState({
       uploadName: values.uploadName,
@@ -195,6 +201,26 @@ class UploadPortal extends React.Component<PropsType, StateType> {
           </Form.Item>
 
           <Form.Item
+            name="parallel"
+            label={
+              <span>
+                {this.enzh("Parallel Upload ", "多线程上传 ")}
+                <Tooltip
+                  placement="bottom"
+                  title={this.enzh(`Parallel upload MAY increase your upload speed,
+                    if you have enough bandwidth. \nHowever, a progress bar won't be displayed
+                    if you choose this option.`,
+                    `如果您的网速足够，勾选多线程上传将提升上传速度，但同时您将无法查看上传进度。`)}
+                >
+                  <QuestionCircleOutlined />
+                </Tooltip>
+              </span>
+            }
+            valuePropName="checked"
+          >
+            <Switch onChange={this.setParallelUpload} />
+          </Form.Item>
+          <Form.Item
             wrapperCol={{
               span: 12,
               offset: 6
@@ -227,7 +253,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
             product={this.state.serviceType}
             uploadControl={this.uploadControl}
             resumeUpload={this.state.unfinishedUpload}
-            parallelUpload={false}
+            parallelUpload={this.state.parallelUpload}
             language={this.props.language}
           /> : null
         }
