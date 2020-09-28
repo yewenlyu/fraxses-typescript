@@ -397,14 +397,28 @@ class UploadController extends React.Component<PropsType, StateType> {
         currentChunk = 0,
         fileReader = new FileReader();
 
-      this.rawProgress.total = chunks;
+      let uploadedPartsSet: Set<number> = new Set();
 
       let promiseQueue: Array<Promise<{
         PartNumber: number;
         ETag: string;
       }>> = [];
 
-      let loadNext = async () => {
+      for (let part of uploadedParts) {
+        completePartsInfo['Parts'].push({
+          PartNumber: part['part_number'],
+          ETag: part['etag']
+        });
+        uploadedPartsSet.add(part['part_number'] - 1);
+      }
+
+      this.rawProgress.completed = uploadedParts.length;
+      this.rawProgress.total = chunks;
+
+      let loadNext = () => {
+        while (uploadedPartsSet.has(currentChunk)) {
+          currentChunk++;
+        }
         let start = currentChunk * chunkSize,
           end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
         fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
