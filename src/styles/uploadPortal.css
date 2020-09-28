@@ -1,6 +1,6 @@
 .UploadPortal {
   background-color: white;
-  height: 100%;
+  min-height: 100%;
 }
 
 .upload-portal-form {

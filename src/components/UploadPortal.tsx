@@ -208,9 +208,8 @@ class UploadPortal extends React.Component<PropsType, StateType> {
                 <Tooltip
                   placement="bottom"
                   title={this.enzh(`Parallel upload MAY increase your upload speed,
-                    if you have enough bandwidth. \nHowever, a progress bar won't be displayed
-                    if you choose this option.`,
-                    `如果您的网速足够，勾选多线程上传将提升上传速度，但同时您将无法查看上传进度。`)}
+                    if you have enough bandwidth.`,
+                    `如果您的网速足够，勾选多线程上传将提升上传速度。`)}
                 >
                   <QuestionCircleOutlined />
                 </Tooltip>

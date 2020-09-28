@@ -32,6 +32,11 @@ type StateType = {
 
 class UploadController extends React.Component<PropsType, StateType> {
 
+  rawProgress: {
+    completed: number;
+    total: number;
+  }
+
   constructor(props: PropsType) {
     super(props);
     this.state = {
@@ -41,6 +46,11 @@ class UploadController extends React.Component<PropsType, StateType> {
       err: false,
       errMessage: ""
     };
+
+    this.rawProgress = {
+      completed: 0,
+      total: 0
+    }
   }
 
   componentDidMount = async () => {
@@ -84,7 +94,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     let millisToMinAndSec = (millis: number): string => {
       let min = Math.floor(millis / 60000);
       let sec = ((millis % 60000) / 1000).toFixed(0);
-      return min + ":" + sec;
+      return min + "m" + sec + "s";
     }
 
     try {
@@ -179,7 +189,7 @@ class UploadController extends React.Component<PropsType, StateType> {
 
   uploadFile = async (s3Client: AWS.S3, awsMetaData: any, file: File, fileKey: string) => {
 
-    this.setState({ step: 1, progress: 0 });
+    this.setState({ step: 1 });
 
     let uploadConfig = {
       Key: fileKey,
@@ -338,7 +348,7 @@ class UploadController extends React.Component<PropsType, StateType> {
    */
   parallelUploadFile = async (s3Client: AWS.S3, awsMetaData: any, file: File, fileKey: string) => {
     
-    this.setState({ step: 1, progress: 100 });
+    this.setState({ step: 1 });
 
     let uploadConfig = {
       Key: fileKey,
@@ -386,6 +396,8 @@ class UploadController extends React.Component<PropsType, StateType> {
         chunks = Math.ceil(file.size / chunkSize),
         currentChunk = 0,
         fileReader = new FileReader();
+
+      this.rawProgress.total = chunks;
 
       let promiseQueue: Array<Promise<{
         PartNumber: number;
@@ -450,6 +462,10 @@ class UploadController extends React.Component<PropsType, StateType> {
     try {
       let response = await this.asyncS3Fetch(s3Client, 'uploadPart', uploadPartConfig);
       await this.recordPart(fileId, uploadPartConfig['PartNumber'], response.ETag, uploadPartConfig['Body'].length);
+
+      this.rawProgress.completed++;
+      this.setState({ progress: parseFloat((this.rawProgress.completed / this.rawProgress.total * 100).toFixed(2)) })
+
       return { PartNumber: uploadPartConfig['PartNumber'], ETag: response.ETag }
     } catch (err) {
       throw new Error(err);
@@ -484,7 +500,7 @@ class UploadController extends React.Component<PropsType, StateType> {
         return (<p>{this.enzh(`Processing File... ${this.state.progress}%`, `正在读取文件... ${this.state.progress}%`)}</p>);
       }
       if (this.state.step === 1) {
-        if (this.props.parallelUpload) {
+        if (this.state.progress === 100) {
           return (<p>{this.enzh("Uploading File, please wait...", "正在上传文件，请稍后")}</p>);
         } else {
           return (<p>{this.enzh(`Uploading File... ${this.state.progress}%`, `正在上传文件... ${this.state.progress}%`)}</p>);
@@ -503,13 +519,6 @@ class UploadController extends React.Component<PropsType, StateType> {
         }
         return (<p>{this.enzh("Please close this modal and try again.", "请关闭对话框并重试。")}</p>)
       }
-      if (this.state.step === 1 && this.state.progress === 0) {
-        if (this.props.resumeUpload) {
-          return (<p>{this.enzh("Retrieving previous progress...", "正在获取上次上传的进度...")}</p>);
-        } else {
-          return (<p>{this.enzh("Establishing connection with the server...", "正在建立与服务器的连接...")}</p>);
-        }
-      }
       if (this.state.step === 2) {
         return (<p>{this.enzh("You may now leave this page.", "您现在可以安全地离开此页。")}</p>);
       }
@@ -523,7 +532,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       if (this.state.step === 0) {
         return "#52c41a";
       } else if (this.state.step === 1) {
-        if (this.props.parallelUpload) {
+        if (this.state.progress === 100) {
           return "#90ee90";
         } else {
           return "#52c41a";
