@@ -515,7 +515,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       }
       if (this.state.step === 1) {
         if (this.state.progress === 100) {
-          return (<p>{this.enzh("Uploading File, please wait...", "正在上传文件，请稍后")}</p>);
+          return (<p>{this.enzh("Uploading File, please wait...", "正在上传文件，请稍候...")}</p>);
         } else {
           return (<p>{this.enzh(`Uploading File... ${this.state.progress}%`, `正在上传文件... ${this.state.progress}%`)}</p>);
         }

@@ -10,6 +10,7 @@ import {
   Switch
 } from 'antd';
 import { FormInstance } from 'antd/lib/form';
+import { RcFile, UploadFile } from 'antd/lib/upload/interface';
 import {
   InboxOutlined,
   ExclamationCircleOutlined,
@@ -32,6 +33,7 @@ type PropsType = {
 
 type StateType = {
   fileData: File | null;
+  fileList: UploadFile<any>[];
   uploadName: string;
   serviceType: string;
   uploadInProgress: boolean;
@@ -50,6 +52,7 @@ class UploadPortal extends React.Component<PropsType, StateType> {
     super(props);
     this.state = {
       fileData: null,
+      fileList: [],
       uploadName: "",
       serviceType: "ev",
       uploadInProgress: false,
@@ -111,6 +114,10 @@ class UploadPortal extends React.Component<PropsType, StateType> {
   componentDidUpdate(prevProps: PropsType, prevState: StateType) {
     if (prevState.uploadInProgress && !this.state.uploadInProgress) {
       this.formRef.current?.resetFields();
+      this.setState({
+        fileData: null,
+        fileList: []
+      })
     }
   }
 
@@ -120,23 +127,41 @@ class UploadPortal extends React.Component<PropsType, StateType> {
   selectService = (value: string) => this.setState({ serviceType: value });
   resumeUploadControl = (on: boolean) => this.setState({ unfinishedUpload: on });
   setParallelUpload = (checked: boolean) => this.setState({ parallelUpload: checked });
+
+  beforeUpload = (file: RcFile): boolean => {
+    if (this.state.fileList.length >= 1) {
+      Modal.info({
+        title: this.enzh("Please upload a single dataset", "请上传单个数据包"),
+        content: this.enzh("If you would like to upload multiple files or a folder, please compress them to a zip file. ",
+          "如果您需要上传多个文件或文件夹，请先将它们压缩为单个文件。"),
+        width: 400
+      });
+    } else {
+      this.setState(prevState => ({
+        fileList: [...prevState.fileList, file]
+      }));
+    }
+    return false;
+  }
+
+  onRemove = (file: UploadFile<any>) => {
+    this.setState(prevState => {
+      let index = prevState.fileList.indexOf(file);
+      let newFileList = prevState.fileList.slice();
+      newFileList.splice(index, 1);
+      return ({
+        fileList: newFileList
+      });
+    });
+  }
+
   onSubmit = (values: any) => {
-    this.setState({
+    this.setState(prevState => ({
+      fileData: prevState.fileList[0] as RcFile,
       uploadName: values.uploadName,
       serviceType: values.service,
       uploadInProgress: true
-    });
-  };
-
-  loadFile = (e: any) => {
-    this.setState({
-      fileData: e.file
-    });
-
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e && e.fileList;
+    }));
   };
 
   enzh = (english: string, chinese: string): string =>
@@ -182,19 +207,19 @@ class UploadPortal extends React.Component<PropsType, StateType> {
           >
             <Form.Item
               name="dragger"
-              valuePropName="fileList"
-              getValueFromEvent={this.loadFile}
               noStyle
             >
               <Upload.Dragger
                 name="files"
-                beforeUpload={(file, fileList) => false}
+                fileList={this.state.fileList}
+                beforeUpload={this.beforeUpload}
+                onRemove={this.onRemove}
               >
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
                 <p className="ant-upload-text">
-                  {this.enzh("Click or drag file to this area to upload", "点击或拖拽文件至此区域")}
+                  {this.enzh("Click or drag a file to this area to upload", "点击或拖拽单个文件至此区域")}
                 </p>
               </Upload.Dragger>
             </Form.Item>
@@ -230,12 +255,8 @@ class UploadPortal extends React.Component<PropsType, StateType> {
               type="primary"
               htmlType="submit"
               icon={<CloudUploadOutlined />}
-              disabled={
-                this.state.fileData === null ? true : false
-              }
-              loading={
-                this.state.uploadInProgress ? true : false
-              }
+              disabled={this.state.fileList.length === 0}
+              loading={this.state.uploadInProgress}
             >
               {this.state.uploadInProgress ?
                 this.enzh("Upload In Progress", "上传中") :
