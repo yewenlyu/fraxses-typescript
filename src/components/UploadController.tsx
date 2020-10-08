@@ -525,6 +525,9 @@ class UploadController extends React.Component<PropsType, StateType> {
   render() {
 
     let progressDescription = () => {
+      if (this.state.err) {
+        return (<p>{this.enzh("Upload Error, please retry or contact us. ", "上传失败，请重试或联系管理员。")}</p>);
+      }
       if (this.state.step === 0) {
         return (<p>{this.enzh(`Processing File... ${this.state.progress}%`, `正在读取文件... ${this.state.progress}%`)}</p>);
       }
