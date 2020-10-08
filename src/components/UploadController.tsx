@@ -367,7 +367,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
     console.log("Upload configuration generated", uploadConfig);
 
-    let completePartsInfo: { Parts: any[] } = { 'Parts': [] };
+    let completePartsInfo: { Parts: { PartNumber: number; ETag: string; }[] } = { 'Parts': [] };
     try {
       let promiseQueue = await this.parallelUploadQueue(s3Client, uploadConfig, awsMetaData.id, file,
         awsMetaData.parts, completePartsInfo);
@@ -378,6 +378,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       console.warn(err);
       throw new Error(err);
     }
+    completePartsInfo.Parts.sort((a, b) => a.PartNumber - b.PartNumber);
     console.log("Upload complete, complete part infomarions available: ", completePartsInfo);
 
     let params = Object.assign({ 'MultipartUpload': completePartsInfo }, uploadConfig);
