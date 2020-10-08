@@ -67,7 +67,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
       isAccident: false,
       unfinishedUpload: false,
       unfinishedUploadName: "",
-      parallelUpload: false
+      parallelUpload: true
     };
 
     this.formItemLayout = {
@@ -336,7 +336,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                   }
                   valuePropName="checked"
                 >
-                  <Switch onChange={this.setParallelUpload} />
+                  <Switch defaultChecked onChange={this.setParallelUpload} />
                 </Form.Item>
                 <Form.Item
                   wrapperCol={{

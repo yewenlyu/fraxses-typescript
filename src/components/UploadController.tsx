@@ -497,6 +497,10 @@ class UploadController extends React.Component<PropsType, StateType> {
   }
 
   handleClose = () => {
+    if (this.state.step <= 1) {
+      window.location.reload();
+      return;
+    }
     this.setState({
       modalVisible: false
     });
