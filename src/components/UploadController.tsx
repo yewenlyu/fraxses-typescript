@@ -90,7 +90,6 @@ class UploadController extends React.Component<PropsType, StateType> {
     let s3Client = this.getS3Client(awsMetaData.authorization);
 
     // Step 3 - Upload file
-
     let millisToMinAndSec = (millis: number): string => {
       let min = Math.floor(millis / 60000);
       let sec = ((millis % 60000) / 1000).toFixed(0);
@@ -279,7 +278,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     })
   }
 
-  recordPart = async (fileId: string, partNumber: number, partETag: string, partSize: number) => {
+  recordPart = async (fileId: string, partNumber: number, partETag: string, partSize: number, retries = 3) => {
     let requestData = {
       upload_id: fileId,
       part_number: partNumber,
@@ -287,15 +286,22 @@ class UploadController extends React.Component<PropsType, StateType> {
       part_size: partSize
     }
 
-    return APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
+    APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
       .then(response => {
-        if (response.code !== 'OK') {
-          this.setState({
-            err: true,
-            errMessage: APIUtils.promptError(response.code, this.props.language)
-          })
+        if (response.code === 'OK') {
+          return;
+        } else {
+          if (retries > 0) {
+            return this.recordPart(fileId, partNumber, partETag, partSize, retries - 1);
+          } else {
+            this.setState({
+              err: true,
+              errMessage: APIUtils.promptError(response.code, this.props.language)
+            });
+            throw new Error();
+          }
         }
-      })
+      });
   }
 
   completeUpload = async (uploadId: string, fileKey: string, etag: string, location: string) => {
@@ -321,16 +327,20 @@ class UploadController extends React.Component<PropsType, StateType> {
       })
   }
 
-  asyncS3Fetch = (s3: any, functionName: string, params: any): any => {
+  asyncS3Fetch = (s3: any, functionName: string, params: any, retries=3): any => {
     return new Promise((resolve, reject) => {
       s3[functionName](params, (err: any, data: any) => {
         if (err) {
-          this.setState({ err: true });
-          console.warn("Fetch: S3." + functionName, params, "error: ", err);
-          resolve(err);
+          console.warn("S3." + functionName, params, "error: ", err, "retries remain: " + retries);
+          if (retries > 0) {
+            resolve(this.asyncS3Fetch(s3, functionName, params, retries - 1));
+          } else {
+            this.setState({ err: true });
+            resolve(err);
+          }
         }
         else {
-          console.log("Fetch: S3." + functionName, params, "data: ", data);
+          console.log("S3." + functionName, params, "data: ", data);
           resolve(data);
         }
       })
@@ -347,7 +357,7 @@ class UploadController extends React.Component<PropsType, StateType> {
    * @param fileKey     File key returned by MD5 hash
    */
   parallelUploadFile = async (s3Client: AWS.S3, awsMetaData: any, file: File, fileKey: string) => {
-    
+
     this.setState({ step: 1 });
 
     let uploadConfig = {
@@ -369,7 +379,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       throw new Error(err);
     }
     console.log("Upload complete, complete part infomarions available: ", completePartsInfo);
-    
+
     let params = Object.assign({ 'MultipartUpload': completePartsInfo }, uploadConfig);
     let result = await this.asyncS3Fetch(s3Client, 'completeMultipartUpload', params);
     await this.completeUpload(awsMetaData.id, fileKey, result['ETag'], result['Location']);
