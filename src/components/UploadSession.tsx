@@ -23,6 +23,7 @@ import {
 
 import 'styles/uploadSession.css';
 
+import { UploadStateType } from "components/Dashboard";
 import UploadController from "components/UploadController";
 
 import * as APIUtils from 'utils/api-utils';
@@ -32,10 +33,12 @@ const { Option } = Select;
 const { confirm } = Modal;
 
 type PropsType = {
-  drawerVisible: boolean;
+  uploadDrawer: boolean;
+  uploadDrawerControl: (on: boolean) => void;
   uploadInProgress: boolean;
-  drawerControl: (on: boolean) => void;
-  uploadControl: (on: boolean) => void;
+  uploadStateControl: (property: keyof UploadStateType, value: UploadStateType[typeof property]) => void;
+  uploadModal: boolean;
+  uploadModalControl: (on: boolean) => void;
   tab: string;
   language: 'en-us' | 'zh-hans';
 }
@@ -83,7 +86,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
       .then(response => {
         if (response.code === 'OK') {
           let uploadList: any[] = (response as APIUtils.SuccessResponseDataType).data.items;
-          if (uploadList.length !== 0 && uploadList[0].state === 'uploading') {
+          if (uploadList.length !== 0 && (uploadList[0].state === 'uploading' || uploadList[0].state === 'init')) {
             this.setState({
               unfinishedUpload: true,
               unfinishedUploadName: (uploadList[0].upload_name)
@@ -164,7 +167,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
     }
     return false;
   }
-  
+
   onRemove = (file: UploadFile<any>) => {
     this.setState(prevState => {
       let index = prevState.fileList.indexOf(file);
@@ -183,8 +186,9 @@ class UploadSession extends React.Component<PropsType, StateType> {
       uploadName: values.uploadName,
       serviceType: values.service
     }));
-    this.props.uploadControl(true);
-    this.props.drawerControl(false);
+    this.props.uploadStateControl("inProgress", true);
+    this.props.uploadStateControl("fileName", this.state.uploadName);
+    this.props.uploadDrawerControl(false);
   }
 
   enzh = (english: string, chinese: string): string =>
@@ -205,8 +209,8 @@ class UploadSession extends React.Component<PropsType, StateType> {
             forceRender={true}
             title={this.enzh("Start New Upload Session", "上传数据")}
             width={720}
-            visible={this.props.drawerVisible}
-            onClose={() => this.props.drawerControl(false)}
+            visible={this.props.uploadDrawer}
+            onClose={() => this.props.uploadDrawerControl(false)}
             destroyOnClose={true}
             bodyStyle={{ paddingBottom: 80 }}
             footer={
@@ -230,7 +234,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                 >
                   {this.enzh("Start Upload", "开始上传")}
                 </Button>
-                <Button onClick={() => this.props.drawerControl(false)}>
+                <Button onClick={() => this.props.uploadDrawerControl(false)}>
                   {this.enzh("Cancel", "取消")}
                 </Button>
               </div>
@@ -326,9 +330,9 @@ class UploadSession extends React.Component<PropsType, StateType> {
                       {this.enzh("Parallel Upload ", "多线程上传 ")}
                       <Tooltip
                         placement="bottom"
-                        title={this.enzh(`Parallel upload MAY increase your upload speed,
-                    if you have enough bandwidth.`,
-                          `如果您的网速足够，勾选多线程上传将提升上传速度。`)}
+                        title={
+                          this.enzh(`Parallel upload MAY increase your upload speed, if you have enough bandwidth.`,
+                            `如果您的网速足够，勾选多线程上传将提升上传速度。`)}
                       >
                         <QuestionCircleOutlined />
                       </Tooltip>
@@ -355,7 +359,9 @@ class UploadSession extends React.Component<PropsType, StateType> {
             file={this.state.fileData}
             uploadName={this.state.uploadName}
             product={this.state.serviceType}
-            uploadControl={this.props.uploadControl}
+            uploadModal={this.props.uploadModal}
+            uploadModalControl={this.props.uploadModalControl}
+            uploadStateControl={this.props.uploadStateControl}
             resumeUpload={this.state.unfinishedUpload}
             parallelUpload={this.state.parallelUpload}
             language={this.props.language}

@@ -21,3 +21,8 @@
   height: 30px;
   font-size: 12.5px;
 }
+
+.table-progress {
+  max-width: 75%;
+  cursor: pointer;
+}

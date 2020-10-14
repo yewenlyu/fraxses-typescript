@@ -21,6 +21,14 @@ import * as APIUtils from 'utils/api-utils';
 // const { SubMenu } = Menu;
 const { Content, Sider, Footer } = Layout;
 
+export type UploadStateType = {
+  inProgress: boolean;
+  fileName: string;
+  step: number;
+  progress: number;
+  error: boolean;
+}
+
 type PropsType = {
   language: 'en-us' | 'zh-hans';
 }
@@ -28,8 +36,9 @@ type PropsType = {
 type StateType = {
   userInfo: any;
   tab: string;
-  drawerVisible: boolean;
-  uploadInProgress: boolean;
+  uploadDrawer: boolean;
+  uploadModal: boolean;
+  uploadState: UploadStateType;
 }
 
 class Dashboard extends React.Component<PropsType, StateType> {
@@ -45,8 +54,15 @@ class Dashboard extends React.Component<PropsType, StateType> {
         remark: '-'
       },
       tab: 'EV Management',
-      drawerVisible: false,
-      uploadInProgress: false
+      uploadDrawer: false,
+      uploadModal: false,
+      uploadState: {
+        inProgress: false,
+        fileName: "",
+        step: 0,
+        progress: 0,
+        error: false
+      }
     }
   }
 
@@ -68,8 +84,14 @@ class Dashboard extends React.Component<PropsType, StateType> {
 
   // controller methods
   handleSelect = (event: any) => this.setState({ tab: event.key });
-  drawerControl = (on: boolean) => this.setState({ drawerVisible: on });
-  uploadControl = (on: boolean) => this.setState({ uploadInProgress: on });
+  uploadDrawerControl = (on: boolean) => this.setState({ uploadDrawer: on });
+  uploadModalControl = (on: boolean) => this.setState({ uploadModal: on });
+  uploadStateControl = (property: keyof UploadStateType, value: UploadStateType[typeof property]) => {
+    this.setState(({uploadState}) => ({uploadState: {
+      ...uploadState,
+      [property]: value
+    }}));
+  }
 
   enzh = (english: string, chinese: string): string =>
     this.props.language === 'en-us' ? english : chinese;
@@ -130,8 +152,10 @@ class Dashboard extends React.Component<PropsType, StateType> {
               <DashboardMain
                 tab={this.state.tab}
                 userInfo={this.state.userInfo}
-                uploadInProgress={this.state.uploadInProgress}
-                drawerControl={this.drawerControl}
+                uploadDrawerControl={this.uploadDrawerControl}
+                uploadState={this.state.uploadState}
+                uploadModal={this.state.uploadModal}
+                uploadModalControl={this.uploadModalControl}
                 language={this.props.language}
               />
             </Content>
@@ -141,10 +165,12 @@ class Dashboard extends React.Component<PropsType, StateType> {
         <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
         
         <UploadSession
-          drawerVisible={this.state.drawerVisible}
-          uploadInProgress={this.state.uploadInProgress}
-          drawerControl={this.drawerControl}
-          uploadControl={this.uploadControl}
+          uploadDrawer={this.state.uploadDrawer}
+          uploadDrawerControl={this.uploadDrawerControl}
+          uploadInProgress={this.state.uploadState.inProgress}
+          uploadStateControl={this.uploadStateControl}
+          uploadModal={this.state.uploadModal}
+          uploadModalControl={this.uploadModalControl}
           tab={this.state.tab}
           language={this.props.language}
         />

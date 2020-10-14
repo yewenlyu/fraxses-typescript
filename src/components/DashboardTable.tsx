@@ -9,7 +9,8 @@ import {
   Dropdown,
   Menu,
   DatePicker,
-  Tooltip
+  Tooltip,
+  Progress
 } from 'antd';
 
 import {
@@ -21,6 +22,7 @@ import {
 
 import 'styles/dashboardTable.css';
 
+import { UploadStateType } from 'components/Dashboard';
 import AlgorithmController from 'components/AlgorithmController';
 
 import * as APIUtils from 'utils/api-utils';
@@ -30,8 +32,10 @@ const { RangePicker } = DatePicker;
 
 type PropsType = {
   tab: string;
-  uploadInProgress: boolean;
-  drawerControl: (on: boolean) => void;
+  uploadDrawerControl: (on: boolean) => void;
+  uploadState: UploadStateType;
+  uploadModal: boolean;
+  uploadModalControl: (on: boolean) => void;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -70,8 +74,9 @@ class DashboardTable extends React.Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType, prevState: StateType) {
-    if (this.props.tab !== prevProps.tab ||
-      this.props.uploadInProgress !== prevProps.uploadInProgress ||
+    if (
+      this.props.tab !== prevProps.tab ||
+      this.props.uploadModal !== prevProps.uploadModal ||
       this.state.refresh !== prevState.refresh ||
       this.state.algorithmControl !== prevState.algorithmControl
     ) {
@@ -192,6 +197,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         title: this.enzh('Upload Time', '上传时间'),
         dataIndex: 'created_at',
         key: 'created_at',
+        width: 400,
         render: (text: number) => {
           let current = new Date(text * 1000);
           return <div>{current.toString().split(' ').splice(0, 6).join(' ')}</div>
@@ -201,7 +207,8 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         title: this.enzh('Status', '状态'),
         dataIndex: 'state',
         key: 'state',
-        render: (text: string) => {
+        width: 275,
+        render: (text: string, record: any) => {
           switch (text) {
             case 'uploaded-raw':
               return (
@@ -209,19 +216,39 @@ class DashboardTable extends React.Component<PropsType, StateType> {
                   {this.enzh("Uploaded", "上传完成")}
                 </Tag>
               );
+            case 'init':
             case 'uploading':
-              return (
-                <Tooltip title={
-                  this.enzh(
-                    "To continue an unfinished upload, upload it again",
-                    "如果您想要继续未完成的上传，请再次上传该文件"
-                  )
-                }>
-                  <Tag color="orange">
-                    {this.enzh("Upload Unfinished", "上传未完成")}
-                  </Tag>
-                </Tooltip>
-              );
+              if (this.props.uploadState.inProgress && record.upload_name === this.props.uploadState.fileName) {
+                return (
+                  <Tooltip title={
+                    this.enzh("View upload status", "查看详情")
+                  }>
+                    <div className="table-progress" onClick={() => this.props.uploadModalControl(true)}>
+                      <Progress
+                        percent={this.props.uploadState.progress}
+                        showInfo={!(this.props.uploadState.step === 1 && this.props.uploadState.progress === 100)}
+                        strokeColor={this.props.uploadState.step === 1 && this.props.uploadState.progress === 100 ? "#90ee90" : undefined}
+                        size="small"
+                        status={this.props.uploadState.error ? "exception" :
+                          (this.props.uploadState.step === 2 && this.props.uploadState.progress === 100 ? "success" : "active")}
+                      />
+                    </div>
+                  </Tooltip>
+                );
+              } else {
+                return (
+                  <Tooltip title={
+                    this.enzh(
+                      "To continue an unfinished upload, upload it again",
+                      "如果您想要继续未完成的上传，请再次上传该文件"
+                    )
+                  }>
+                    <Tag color="orange">
+                      {this.enzh("Upload Cancelled", "上传未完成")}
+                    </Tag>
+                  </Tooltip>
+                );
+              }
             default:
               return (
                 <Tag color="blue">
@@ -238,7 +265,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         render: (text: any, record: any) => {
           if (record.state === 'uploaded-raw') {
             return (<a href="/#" onClick={e => { this.handleSelectFile(e, record.file_name) }}>{this.enzh("Select Algorithm", "选择算法")}</a>);
-          } else if (record.state === 'uploading') {
+          } else if (record.state === 'uploading' || record.state === 'init') {
             return (<span style={{ color: "#00000040" }}>-</span>);
           } else {
             return (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>);
@@ -254,7 +281,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
           type="primary"
           shape="round"
           icon={<CloudUploadOutlined />}
-          onClick={() => this.props.drawerControl(true)}
+          onClick={() => this.props.uploadDrawerControl(true)}
         >
           {
             this.state.fileList[0]?.state !== 'uploading' ?

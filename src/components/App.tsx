@@ -6,7 +6,6 @@ import 'styles/app.css';
 
 import Signin from 'components/Signin';
 import Dashboard from 'components/Dashboard';
-import UploadPortal from 'components/UploadPortal';
 import TopBar from 'components/TopBar';
 
 import * as APIUtils from 'utils/api-utils';
@@ -70,12 +69,6 @@ class App extends React.Component<{}, StateType> {
     <Redirect to="/signin" />
   }
 
-  mountUploadPortal = () => {
-    return this.state.authorized ?
-    <UploadPortal language={this.state.language} /> :
-    <Redirect to="/signin" />
-  }
-
   render() {
     return (
       <div className="App">
@@ -90,7 +83,6 @@ class App extends React.Component<{}, StateType> {
           <Route exact path="/" render={this.mountSignin} />
           <Route path="/signin" render={this.mountSignin} />
           <Route path="/home" render={this.mountDashboard} />
-          <Route path="/upload-portal" render={this.mountUploadPortal} />
           <Route render={this.mountSignin} />
         </Switch>
         </Layout>

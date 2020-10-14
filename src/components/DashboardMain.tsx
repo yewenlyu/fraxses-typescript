@@ -14,14 +14,17 @@ import {
 
 import 'styles/dashboardMain.css';
 
+import { UploadStateType } from 'components/Dashboard';
 import DashboardCharts from 'components/DashboardCharts';
 import DashboardTable from 'components/DashboardTable';
 
 type PropsType = {
   tab: string;
   userInfo: any;
-  uploadInProgress: boolean;
-  drawerControl: (on: boolean) => void;
+  uploadDrawerControl: (on: boolean) => void;
+  uploadState: UploadStateType;
+  uploadModal: boolean;
+  uploadModalControl: (on: boolean) => void;
   language: 'en-us' | 'zh-hans';
 }
 
@@ -92,8 +95,10 @@ class DashboardMain extends React.Component<PropsType> {
         <Divider orientation="left">{this.enzh("Manage Uploads", "项目管理")}</Divider>
         <DashboardTable
           tab={this.props.tab}
-          uploadInProgress={this.props.uploadInProgress}
-          drawerControl={this.props.drawerControl}
+          uploadDrawerControl={this.props.uploadDrawerControl}
+          uploadState={this.props.uploadState}
+          uploadModal={this.props.uploadModal}
+          uploadModalControl={this.props.uploadModalControl}
           language={this.props.language}
         />
       </div>

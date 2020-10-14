@@ -4,26 +4,27 @@ import SparkMD5 from 'spark-md5';
 import {
   Button,
   Modal,
-  // Steps,
   Progress
 } from 'antd';
 
-import * as APIUtils from 'utils/api-utils';
+import { UploadStateType } from "components/Dashboard";
 
-// const { Step } = Steps;
+import * as APIUtils from 'utils/api-utils';
+import { MinusOutlined } from '@ant-design/icons';
 
 type PropsType = {
   file: File;
   uploadName: string;
   product: string;
-  uploadControl: (on: boolean) => void;
+  uploadModal: boolean;
+  uploadModalControl: (on: boolean) => void;
+  uploadStateControl: (property: keyof UploadStateType, value: UploadStateType[typeof property]) => void;
   resumeUpload: boolean;
   parallelUpload: boolean;
   language: 'en-us' | 'zh-hans';
 }
 
 type StateType = {
-  modalVisible: boolean;
   step: number;
   progress: number;
   err: boolean;
@@ -40,7 +41,6 @@ class UploadController extends React.Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props);
     this.state = {
-      modalVisible: false,
       step: 0,
       progress: 0,
       err: false,
@@ -59,9 +59,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     let file = this.props.file;
     console.log("File recieved", file)
 
-    this.setState({
-      modalVisible: true
-    });
+    this.props.uploadModalControl(true);
 
     let fileMD5 = await this.md5Hash(file);
     console.log("MD5 hash complete", fileMD5);
@@ -109,6 +107,26 @@ class UploadController extends React.Component<PropsType, StateType> {
       this.setState({ err: true });
       console.warn(err);
     }
+  }
+
+  componentDidUpdate = (prevProps: PropsType, prevState: StateType) => {
+    if (this.state.step !== prevState.step) {
+      this.props.uploadStateControl("step", this.state.step);
+      this.props.uploadStateControl("progress", this.state.progress);
+    }
+    if (this.state.step === 1 && this.state.progress !== prevState.progress) {
+      this.props.uploadStateControl("progress", this.state.progress);
+    }
+    if (this.state.err !== prevState.err) {
+      this.props.uploadStateControl("error", this.state.err);
+    }
+  }
+
+  componentWillUnmount = () => {
+    this.props.uploadStateControl("fileName", "");
+    this.props.uploadStateControl("step", 0);
+    this.props.uploadStateControl("progress", 0);
+    this.props.uploadStateControl("error", false);
   }
 
   md5Hash = async (file: File): Promise<string> => {
@@ -327,7 +345,7 @@ class UploadController extends React.Component<PropsType, StateType> {
       })
   }
 
-  asyncS3Fetch = (s3: any, functionName: string, params: any, retries=3): any => {
+  asyncS3Fetch = (s3: any, functionName: string, params: any, retries = 3): any => {
     return new Promise((resolve, reject) => {
       s3[functionName](params, (err: any, data: any) => {
         if (err) {
@@ -502,22 +520,9 @@ class UploadController extends React.Component<PropsType, StateType> {
       window.location.reload();
       return;
     }
-    this.setState({
-      modalVisible: false
-    });
-    this.props.uploadControl(false);
+    this.props.uploadModalControl(false);
+    this.props.uploadStateControl("inProgress", false);
   }
-
-  // The Step UI
-  // stepDescription = (currentStep: number) => {
-  //   if (this.state.step < currentStep) {
-  //     return this.enzh("Waiting", "等待中...");
-  //   } else if (this.state.step > currentStep) {
-  //     return this.enzh("Finished", "已完成");
-  //   } else {
-  //     return this.enzh("Current Progress: ", "当前进度：") + this.state.progress + "%";
-  //   }
-  // }
 
   enzh = (english: string, chinese: string): string =>
     this.props.language === 'en-us' ? english : chinese;
@@ -586,23 +591,31 @@ class UploadController extends React.Component<PropsType, StateType> {
     return (
       <div className="UploadController">
         <Modal
-          visible={this.state.modalVisible}
+          visible={this.props.uploadModal}
           centered
           title={this.enzh("Upload Data", "上传数据文件")}
-          closable={this.state.step === 2 || this.state.err}
           maskClosable={false}
-          destroyOnClose={true}
-          onCancel={this.handleClose}
+          closable={this.state.step === 1 && !this.state.err}
+          closeIcon={<MinusOutlined />}
+          onCancel={() => this.props.uploadModalControl(false)}
           footer={[
             <Button
               key="primary"
               type={(!this.state.err && this.state.step <= 1) ? "default" : "primary"}
               onClick={this.handleClose}
-            >
+            >,
               {
                 (!this.state.err && this.state.step <= 1) ? this.enzh("Cancel", "取消") : this.enzh("Return", "返回")
               }
-            </Button>
+            </Button>,
+            this.state.step === 1 && !this.state.err ?
+              <Button
+                key="default"
+                type="primary"
+                onClick={() => this.props.uploadModalControl(false)}
+              >
+                {this.enzh("Upload in Background", "后台上传")}
+              </Button> : null
           ]}
         >
           {progressDescription()}
@@ -613,27 +626,6 @@ class UploadController extends React.Component<PropsType, StateType> {
             showInfo={false}
           />
           {progressSubDescription()}
-
-          {/* The Step UI */}
-          {/* <Steps
-            direction="vertical"
-            current={this.state.step}
-            percent={this.state.progress}
-            status={this.state.err ? "error" : "process"}
-          >
-            <Step
-              title={this.enzh("Processing File", "处理文件")}
-              description={this.stepDescription(0)}
-            />
-            <Step
-              title={this.enzh("Uploading File", "上传文件")}
-              description={this.stepDescription(1)}
-            />
-            <Step
-              title={this.enzh("Upload Finished", "上传完成")}
-              description={this.state.step >= 2 ? this.enzh("You may now close the window.", "您可以关闭此对话框") : this.enzh("Waiting", "等待中...")}
-            />
-          </Steps> */}
 
         </Modal>
       </div>
