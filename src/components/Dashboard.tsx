@@ -3,7 +3,9 @@ import React from 'react';
 import {
   Layout,
   Menu,
-  Breadcrumb
+  Button,
+  Breadcrumb,
+  notification
 } from 'antd';
 import {
   SisternodeOutlined,
@@ -80,6 +82,44 @@ class Dashboard extends React.Component<PropsType, StateType> {
           APIUtils.promptError(response.code, this.props.language);
         }
       })
+  }
+
+  componentDidUpdate = (prevProps: PropsType, prevState: StateType) => {
+    if (this.state.uploadState.step === 2 && prevState.uploadState.step === 1 && !this.state.uploadModal) {
+      let notificationKey = `open${Date.now()}`;
+      notification.success({
+        message: this.enzh("Upload Complete", "上传完成"),
+        description: this.enzh(`"${this.state.uploadState.fileName}" has been successfully uploaded, you may now choose algorithm for this dataset. `,
+          `"${this.state.uploadState.fileName}" 已被成功上传，您现在可以选择分析算法。`),
+        duration: null,
+        key: notificationKey,
+        btn: (<Button type="primary" onClick={() => {
+          notification.close(notificationKey);
+          this.setState({ uploadModal: true });
+        }}>
+          {this.enzh("View", "查看")}
+        </Button>),
+        onClose: () => this.setState({ uploadModal: true })
+      });
+    }
+
+    if (this.state.uploadState.error && !prevState.uploadState.error && !this.state.uploadModal) {
+      let notificationKey = `open${Date.now()}`;
+      notification.warn({
+        message: this.enzh("Upload Error", "上传错误"),
+        description: this.enzh(`There's an error when uploading "${this.state.uploadState.fileName}", please check it out. `,
+          `"${this.state.uploadState.fileName}" 在上传时遇到错误，请查看。`),
+        duration: null,
+        key: notificationKey,
+        btn: (<Button type="primary" onClick={() => {
+          notification.close(notificationKey);
+          this.setState({ uploadModal: true });
+        }}>
+          {this.enzh("View", "查看")}
+        </Button>),
+        onClose: () => this.setState({ uploadModal: true })
+      });
+    }
   }
 
   // controller methods

@@ -603,7 +603,7 @@ class UploadController extends React.Component<PropsType, StateType> {
               key="primary"
               type={(!this.state.err && this.state.step <= 1) ? "default" : "primary"}
               onClick={this.handleClose}
-            >,
+            >
               {
                 (!this.state.err && this.state.step <= 1) ? this.enzh("Cancel", "取消") : this.enzh("Return", "返回")
               }
