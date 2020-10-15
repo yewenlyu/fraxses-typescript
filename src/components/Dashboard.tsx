@@ -127,10 +127,12 @@ class Dashboard extends React.Component<PropsType, StateType> {
   uploadDrawerControl = (on: boolean) => this.setState({ uploadDrawer: on });
   uploadModalControl = (on: boolean) => this.setState({ uploadModal: on });
   uploadStateControl = (property: keyof UploadStateType, value: UploadStateType[typeof property]) => {
-    this.setState(({uploadState}) => ({uploadState: {
-      ...uploadState,
-      [property]: value
-    }}));
+    this.setState(({ uploadState }) => ({
+      uploadState: {
+        ...uploadState,
+        [property]: value
+      }
+    }));
   }
 
   enzh = (english: string, chinese: string): string =>
@@ -203,7 +205,7 @@ class Dashboard extends React.Component<PropsType, StateType> {
           </Layout>
         </Content>
         <Footer style={{ textAlign: 'center' }}>{"Fova Energy ©2020"}</Footer>
-        
+
         <UploadSession
           uploadDrawer={this.state.uploadDrawer}
           uploadDrawerControl={this.uploadDrawerControl}

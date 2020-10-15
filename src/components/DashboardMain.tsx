@@ -29,7 +29,7 @@ type PropsType = {
 }
 
 class DashboardMain extends React.Component<PropsType> {
-  
+
   enzh = (english: string, chinese: string): string =>
     this.props.language === 'en-us' ? english : chinese;
 
@@ -44,7 +44,7 @@ class DashboardMain extends React.Component<PropsType> {
       default:
         return "";
     }
-  } 
+  }
 
   render() {
     return (

@@ -34,23 +34,23 @@ class App extends React.Component<{}, StateType> {
    */
   componentDidMount = () => {
     APIUtils.get('/api/account/user/info')
-    .then(responseData => {
-      if (responseData.code === 'OK') {
-        this.setState({
-          authorized: true
-        });
-      }
-    })
-    .catch(() => {
-      this.setState({
-        authorized: false
+      .then(responseData => {
+        if (responseData.code === 'OK') {
+          this.setState({
+            authorized: true
+          });
+        }
       })
-    })
+      .catch(() => {
+        this.setState({
+          authorized: false
+        })
+      })
   }
 
   handleSignin = () => { this.setState({ authorized: true }); }
   handleSignout = () => { this.setState({ authorized: false }); }
-  switchLanguage = (inputLanguage: StateType["language"]) => { this.setState({ language: inputLanguage });}
+  switchLanguage = (inputLanguage: StateType["language"]) => { this.setState({ language: inputLanguage }); }
 
   mountSignin = () => {
     return this.state.authorized ?
@@ -64,9 +64,9 @@ class App extends React.Component<{}, StateType> {
 
   mountDashboard = () => {
     return this.state.authorized ?
-    <Dashboard
-      language={this.state.language} /> :
-    <Redirect to="/signin" />
+      <Dashboard
+        language={this.state.language} /> :
+      <Redirect to="/signin" />
   }
 
   render() {
@@ -79,12 +79,12 @@ class App extends React.Component<{}, StateType> {
             handleSignout={this.handleSignout}
             switchLanguage={this.switchLanguage}
           />
-        <Switch>
-          <Route exact path="/" render={this.mountSignin} />
-          <Route path="/signin" render={this.mountSignin} />
-          <Route path="/home" render={this.mountDashboard} />
-          <Route render={this.mountSignin} />
-        </Switch>
+          <Switch>
+            <Route exact path="/" render={this.mountSignin} />
+            <Route path="/signin" render={this.mountSignin} />
+            <Route path="/home" render={this.mountDashboard} />
+            <Route render={this.mountSignin} />
+          </Switch>
         </Layout>
       </div>
     );

@@ -68,12 +68,12 @@ class AlgorithmController extends React.Component<PropsType, StateType> {
       algo_id: this.state.selectedAlgoId
     }
     APIUtils.post('/api/data/analysis/start', JSON.stringify(requestBody))
-    .then(response => {
-      if (response.code !== 'OK') {
-        APIUtils.promptError(response.code, this.props.language);
-      }
-      this.props.algorithmControl(false);
-    })
+      .then(response => {
+        if (response.code !== 'OK') {
+          APIUtils.promptError(response.code, this.props.language);
+        }
+        this.props.algorithmControl(false);
+      })
   }
 
   handleCancel = () => {
