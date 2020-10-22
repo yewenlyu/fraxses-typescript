@@ -2,7 +2,6 @@ import React from 'react';
 import {
   PageHeader,
   Button,
-  Divider,
   Descriptions,
   Tag,
   Badge,
@@ -92,7 +91,6 @@ class DashboardMain extends React.Component<PropsType> {
           </Descriptions>
         </PageHeader>
         <DashboardCharts />
-        <Divider orientation="left">{this.enzh("Manage Uploads", "项目管理")}</Divider>
         <DashboardTable
           tab={this.props.tab}
           uploadDrawerControl={this.props.uploadDrawerControl}

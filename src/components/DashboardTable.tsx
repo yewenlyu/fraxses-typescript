@@ -10,7 +10,8 @@ import {
   Menu,
   DatePicker,
   Tooltip,
-  Progress
+  Progress,
+  Tabs
 } from 'antd';
 
 import {
@@ -24,9 +25,11 @@ import 'styles/dashboardTable.css';
 
 import { UploadStateType } from 'components/Dashboard';
 import AlgorithmController from 'components/AlgorithmController';
+import EVHistoryTable from 'components/EVHistoryTable';
 
 import * as APIUtils from 'utils/api-utils';
 
+const { TabPane } = Tabs;
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
@@ -40,10 +43,11 @@ type PropsType = {
 }
 
 type StateType = {
+  tableTab: 'item' | 'file';
   fileList: any[];
   filteredFileList: any[];
-  algoList: any[];
-  algorithmControl: boolean;
+  algorithmModal: boolean;
+  historyTableModal: boolean;
   refresh: boolean;
 }
 
@@ -53,19 +57,22 @@ class DashboardTable extends React.Component<PropsType, StateType> {
 
   state: StateType;
   targetFileId: string;
+  targetItemId: string;
   timeRange: TimeRangeType;
 
   constructor(props: PropsType) {
     super(props);
     this.state = {
+      tableTab: 'item',
       fileList: [],
       filteredFileList: [],
-      algoList: [],
-      algorithmControl: false,
+      algorithmModal: false,
+      historyTableModal: false,
       refresh: false
     }
 
     this.targetFileId = "";
+    this.targetItemId = "";
     this.timeRange = [moment(0), moment(0)];
   }
 
@@ -76,15 +83,24 @@ class DashboardTable extends React.Component<PropsType, StateType> {
   componentDidUpdate(prevProps: PropsType, prevState: StateType) {
     if (
       this.props.tab !== prevProps.tab ||
-      this.props.uploadModal !== prevProps.uploadModal ||
       this.state.refresh !== prevState.refresh ||
-      this.state.algorithmControl !== prevState.algorithmControl
+      this.state.algorithmModal !== prevState.algorithmModal
     ) {
+      this.getFileList();
+    }
+
+    if (this.props.uploadModal !== prevProps.uploadModal && this.props.uploadModal) {
+      this.setState({
+        tableTab: 'file'
+      });
       this.getFileList();
     }
   }
 
-  algorithmControl = (on: boolean) => this.setState({ algorithmControl: on });
+  algorithmControl = (on: boolean) => this.setState({ algorithmModal: on });
+  tableTabControl = (key: string) => this.setState({ tableTab: (key as 'item' | 'file') });
+  historyModalControl = (on: boolean) => this.setState({ historyTableModal: on });
+
 
   getFileList = () => {
     let requestParams = {
@@ -136,8 +152,16 @@ class DashboardTable extends React.Component<PropsType, StateType> {
     this.targetFileId = selectedFile.id;
     console.log("File selected", this.targetFileId)
     this.setState({
-      algorithmControl: true
+      algorithmModal: true
     })
+  }
+
+  handleSelectItem = (e: any, itemId: string) => {
+    e.preventDefault();
+    this.targetItemId = itemId;
+    this.setState({
+      historyTableModal: true
+    });
   }
 
   selectTimeRange = (value: any) => {
@@ -182,7 +206,58 @@ class DashboardTable extends React.Component<PropsType, StateType> {
       </div>
     );
 
-    let formColumns = [
+    let itemTableColumns = [
+      {
+        title: this.enzh("EV VIN #", "车辆编号"),
+        dataIndex: 'ev_name',
+        key: 'ev_name',
+      },
+      {
+        title: this.enzh("Upload Time", "最新上传时间"),
+        dataIndex: 'ev_time',
+        key: 'ev_time',
+      },
+      {
+        title: this.enzh("Status", "最新上传状态"),
+        dataIndex: 'ev_status',
+        key: 'ev_status',
+        render: (text: string, record: any) => {
+          switch (text) {
+            case 'uploaded':
+              return (
+                <Tag color="orange">
+                  {this.enzh("Pending Analyze", "待分析")}
+                </Tag>
+              );
+            case 'analyzing':
+              return (
+                <Tag color="cyan">
+                  {this.enzh("Analyzing", "分析中")}
+                </Tag>
+              );
+            case 'complete':
+              return (
+                <Tag color="green">
+                  {this.enzh("Result Delivered", "分析完成")}
+                </Tag>
+              );
+          }
+        }
+      },
+      {
+        title: this.enzh("Action", "可选操作"),
+        dataIndex: '',
+        key: 'x',
+        render: (text: any, record: any) => {
+          switch (record["ev_status"]) {
+            case 'complete':
+              return (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_name"]) }}>{this.enzh("View Result", "查看结果")}</a>);
+          }
+        }
+      },
+    ];
+
+    let fileTableColumns = [
       {
         title: this.enzh('File Name', '数据名'),
         dataIndex: 'upload_name',
@@ -276,81 +351,171 @@ class DashboardTable extends React.Component<PropsType, StateType> {
 
     return (
       <div className="DashboardTable">
-        <Button
-          className="table-button"
-          type="primary"
-          shape="round"
-          icon={<CloudUploadOutlined />}
-          onClick={() => this.props.uploadDrawerControl(true)}
-        >
-          {
-            this.state.fileList[0]?.state !== 'uploading' ?
-              this.enzh("New Upload", "上传数据") :
-              this.enzh("Resume / New Upload", "新建/继续上传")
-          }
-        </Button>
+        <Tabs defaultActiveKey="item" activeKey={this.state.tableTab} onChange={this.tableTabControl}>
+          <TabPane tab={this.enzh("EV Management", "车辆分析管理")} key="item">
+            <Button
+              className="table-button"
+              type="primary"
+              shape="round"
+              icon={<CloudUploadOutlined />}
+              onClick={() => this.props.uploadDrawerControl(true)}
+            >
+              {
+                this.state.fileList[0]?.state !== 'uploading' ?
+                  this.enzh("New Upload", "上传数据") :
+                  this.enzh("Resume / New Upload", "新建/继续上传")
+              }
+            </Button>
 
-        <Dropdown overlay={bulkActionMenu} trigger={['click']}>
-          <Button
-            className="table-button"
-            shape="round"
-            icon={<UnorderedListOutlined />}
-          >
-            {this.enzh("Bulk Action", "多选操作")}
-          </Button>
-        </Dropdown>
+            <Dropdown overlay={bulkActionMenu} trigger={['click']}>
+              <Button
+                className="table-button"
+                shape="round"
+                icon={<UnorderedListOutlined />}
+              >
+                {this.enzh("Bulk Action", "多选操作")}
+              </Button>
+            </Dropdown>
 
-        <Popover
-          placement="bottomLeft"
-          content={filterPopup}
-          trigger="click"
-        >
-          <Button
-            className="table-button"
-            shape="round"
-            icon={<FilterOutlined />}
-          >
-            {this.enzh("Filter", "筛选")}
-          </Button>
-        </Popover>
+            <Popover
+              placement="bottomLeft"
+              content={filterPopup}
+              trigger="click"
+            >
+              <Button
+                className="table-button"
+                shape="round"
+                icon={<FilterOutlined />}
+              >
+                {this.enzh("Filter", "筛选")}
+              </Button>
+            </Popover>
 
-        <Search
-          key={this.state.refresh.toString()}
-          onSearch={this.onSearch}
-          size="small"
-          style={{
-            width: 200,
-            padding: "5px",
-          }}
-        />
+            <Search
+              key={this.state.refresh.toString()}
+              onSearch={this.onSearch}
+              size="small"
+              style={{
+                width: 200,
+                padding: "5px",
+              }}
+            />
 
-        <Button
-          className="table-button refresh"
-          shape="round"
-          type="link"
-          icon={<ReloadOutlined />}
-          onClick={this.refresh}
-        >
-          {this.enzh("Refresh / Clear Filter", "重置")}
-        </Button>
+            <Button
+              className="table-button refresh"
+              shape="round"
+              type="link"
+              icon={<ReloadOutlined />}
+              onClick={this.refresh}
+            >
+              {this.enzh("Refresh / Clear Filter", "重置")}
+            </Button>
 
-        <Table
-          size="middle"
-          rowSelection={{}}
-          pagination={{ pageSize: 7 }}
-          columns={formColumns}
-          dataSource={this.state.filteredFileList}
-        />
-        { this.state.algorithmControl ?
-          <AlgorithmController
-            targetFileId={this.targetFileId}
-            algorithmControl={this.algorithmControl}
-            language={this.props.language}
-          /> : null
+            <Table
+              size="middle"
+              rowSelection={{}}
+              pagination={{ pageSize: 7 }}
+              columns={itemTableColumns}
+              dataSource={itemStaticSource}
+            />
+          </TabPane>
+
+          <TabPane tab={this.enzh("Upload Management", "上传数据管理")} key="file">
+            <Button
+              className="table-button"
+              type="primary"
+              shape="round"
+              icon={<CloudUploadOutlined />}
+              onClick={() => this.props.uploadDrawerControl(true)}
+            >
+              {
+                this.state.fileList[0]?.state !== 'uploading' ?
+                  this.enzh("New Upload", "上传数据") :
+                  this.enzh("Resume / New Upload", "新建/继续上传")
+              }
+            </Button>
+
+            <Dropdown overlay={bulkActionMenu} trigger={['click']}>
+              <Button
+                className="table-button"
+                shape="round"
+                icon={<UnorderedListOutlined />}
+              >
+                {this.enzh("Bulk Action", "多选操作")}
+              </Button>
+            </Dropdown>
+
+            <Popover
+              placement="bottomLeft"
+              content={filterPopup}
+              trigger="click"
+            >
+              <Button
+                className="table-button"
+                shape="round"
+                icon={<FilterOutlined />}
+              >
+                {this.enzh("Filter", "筛选")}
+              </Button>
+            </Popover>
+
+            <Search
+              key={this.state.refresh.toString()}
+              onSearch={this.onSearch}
+              size="small"
+              style={{
+                width: 200,
+                padding: "5px",
+              }}
+            />
+
+            <Button
+              className="table-button refresh"
+              shape="round"
+              type="link"
+              icon={<ReloadOutlined />}
+              onClick={this.refresh}
+            >
+              {this.enzh("Refresh / Clear Filter", "重置")}
+            </Button>
+
+            <Table
+              size="middle"
+              rowSelection={{}}
+              pagination={{ pageSize: 7 }}
+              columns={fileTableColumns}
+              dataSource={this.state.filteredFileList}
+            />
+          </TabPane>
+        </Tabs>
+        {
+          this.state.algorithmModal ?
+            <AlgorithmController
+              targetFileId={this.targetFileId}
+              algorithmControl={this.algorithmControl}
+              language={this.props.language}
+            /> : null
         }
-      </div>
+        {
+          this.state.historyTableModal ?
+            <EVHistoryTable
+              itemName={this.targetItemId}
+              historyModalControl={this.historyModalControl}
+              language={this.props.language}
+            /> : null
+        }
+      </div >
     );
   }
 }
+
+const itemStaticSource = [
+  {
+    key: 1,
+    ev_name: 'LNBSCU3H3JG358441',
+    ev_time: '2020/10/21 22:24:20',
+    ev_status: 'complete',
+  },
+]
 
 export default DashboardTable;
