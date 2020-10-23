@@ -7,7 +7,7 @@ import {
 
 import 'styles/topBar.css';
 
-import Logo from 'components/Logo';
+import LogoLight from 'assets/fova-logo-light.png';
 
 import * as APIUtils from 'utils/api-utils';
 
@@ -57,7 +57,7 @@ class TopBar extends React.Component<PropsType> {
     return (
       <div className="TopBar">
         <Header className="header">
-          <Logo />
+          <img src={LogoLight} alt="logo-light" className="logo-light" />
           <Menu theme="dark" mode="horizontal">
             {this.props.authorized ? userMenu : null}
             <SubMenu

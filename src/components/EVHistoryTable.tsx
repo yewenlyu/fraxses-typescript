@@ -60,8 +60,8 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
         <Modal
           visible={true}
           centered
-          width={1200}
-          title={this.enzh("Analyze Result Detail", "分析历史结果")}
+          width={window.innerWidth * 0.8}
+          title={this.enzh(`EV - ${this.props.itemName} Analyze History`, `车辆 - ${this.props.itemName} 分析历史`)}
           onCancel={() => this.props.historyModalControl(false)}
           footer={null}
         >

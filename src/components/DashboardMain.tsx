@@ -85,9 +85,6 @@ class DashboardMain extends React.Component<PropsType> {
             <Descriptions.Item label={this.enzh("Affiliation", "编号")}>
               {this.props.userInfo.id}
             </Descriptions.Item>
-            <Descriptions.Item label={this.enzh("Remarks", "备注")}>
-              {this.props.userInfo.remark}
-            </Descriptions.Item>
           </Descriptions>
         </PageHeader>
         <DashboardCharts />

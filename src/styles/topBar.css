@@ -1,3 +1,10 @@
 .ant-layout-header {
   padding: 0 10px;
 }
+
+.logo-light {
+  float: left;
+  height: 28px;
+  margin-top: 19px;
+  margin-left: 32px;
+}

@@ -209,8 +209,8 @@ class DashboardTable extends React.Component<PropsType, StateType> {
     let itemTableColumns = [
       {
         title: this.enzh("EV VIN #", "车辆编号"),
-        dataIndex: 'ev_name',
-        key: 'ev_name',
+        dataIndex: 'ev_id',
+        key: 'ev_id',
       },
       {
         title: this.enzh("Upload Time", "最新上传时间"),
@@ -232,7 +232,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
             case 'analyzing':
               return (
                 <Tag color="cyan">
-                  {this.enzh("Analyzing", "分析中")}
+                  {this.enzh("Analyzing in Progress", "分析中")}
                 </Tag>
               );
             case 'complete':
@@ -250,8 +250,12 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         key: 'x',
         render: (text: any, record: any) => {
           switch (record["ev_status"]) {
+            case 'uploaded':
+              return (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Start Analyze", "开始分析")}</a>);
+            case 'analyzing':
+              return (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Pause Analyze", "停止分析")}</a>);
             case 'complete':
-              return (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_name"]) }}>{this.enzh("View Result", "查看结果")}</a>);
+              return (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看结果")}</a>);
           }
         }
       },
@@ -420,7 +424,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
             />
           </TabPane>
 
-          <TabPane tab={this.enzh("Upload Management", "上传数据管理")} key="file">
+          <TabPane tab={this.enzh("Dataset Management", "批次数据管理")} key="file">
             <Button
               className="table-button"
               type="primary"
@@ -512,10 +516,58 @@ class DashboardTable extends React.Component<PropsType, StateType> {
 const itemStaticSource = [
   {
     key: 1,
-    ev_name: 'LNBSCU3H3JG358441',
+    ev_id: 'LNBSCU3H3JG358441',
     ev_time: '2020/10/21 22:24:20',
+    ev_status: 'uploaded',
+  },
+  {
+    key: 2,
+    ev_id: 'LNBSCU3H5JR053043',
+    ev_time: '2020/10/19 12:16:09',
+    ev_status: 'analyzing',
+  },
+  {
+    key: 3,
+    ev_id: 'LNBSCU3H7JR883782',
+    ev_time: '2020/10/19 12:16:09',
+    ev_status: 'analyzing',
+  },
+  {
+    key: 4,
+    ev_id: 'LNBSCU3H5JG304574',
+    ev_time: '2020/10/19 12:16:09',
     ev_status: 'complete',
   },
+  {
+    key: 5,
+    ev_id: 'LNBSCU3H8JR052114',
+    ev_time: '2020/10/18 20:16:11',
+    ev_status: 'complete',
+  },
+  {
+    key: 6,
+    ev_id: 'LNBSCU3H2JR884774',
+    ev_time: '2019/11/13 22:24:20',
+    ev_status: 'complete',
+  },
+  {
+    key: 7,
+    ev_id: 'LNBSCU3H8JR052114',
+    ev_time: '2019/10/23 22:24:20',
+    ev_status: 'complete',
+  },
+  {
+    key: 8,
+    ev_id: 'LNBSCU3H2JG353098',
+    ev_time: '2019/10/10 22:24:20',
+    ev_status: 'complete',
+  },
+  {
+    key: 9,
+    ev_id: 'LNBSCU3H8JR884729',
+    ev_time: '2019/10/10 22:24:20',
+    ev_status: 'complete',
+  }
 ]
 
 export default DashboardTable;
