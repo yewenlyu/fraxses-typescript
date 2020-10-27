@@ -6,10 +6,19 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 5px;
   height: 18vh;
+  padding: 0 1vh;
   text-align: center;
 }
 
 .placeholder {
   padding-top: 7.5vh;
   color: #00000073;
+}
+
+.ant-statistic {
+  padding-top: 6vh;
+}
+
+.ant-statistic-title {
+  font-size: 16px;
 }

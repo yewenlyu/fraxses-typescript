@@ -15,7 +15,7 @@ import 'styles/dashboardMain.css';
 
 import { UploadStateType } from 'components/Dashboard';
 import DashboardCharts from 'components/DashboardCharts';
-import DashboardTable from 'components/DashboardTable';
+import DashboardTables from 'components/DashboardTables';
 
 type PropsType = {
   tab: string;
@@ -63,7 +63,7 @@ class DashboardMain extends React.Component<PropsType> {
               shape="round"
               icon={<ExportOutlined />}
             >
-              {this.enzh("Export", "下载结果")}
+              {this.enzh("Export", "导出结果")}
             </Button>,
             <Badge dot
               key="notification-badge">
@@ -87,8 +87,10 @@ class DashboardMain extends React.Component<PropsType> {
             </Descriptions.Item>
           </Descriptions>
         </PageHeader>
-        <DashboardCharts />
-        <DashboardTable
+        <DashboardCharts
+          language={this.props.language}
+        />
+        <DashboardTables
           tab={this.props.tab}
           uploadDrawerControl={this.props.uploadDrawerControl}
           uploadState={this.props.uploadState}
