@@ -78,7 +78,7 @@ class UploadDataTable extends React.Component<PropsType, {}> {
         key: 'ev_details',
         render: (text: any, record: any) => {
           if (record['ev_details'].length === 0) {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           }
           let evDetailsList = record['ev_details'].map((item: any) => (
             <li key={item.key}>{this.props.language === 'en-us' ? item.detail : item.description}</li>
@@ -92,11 +92,12 @@ class UploadDataTable extends React.Component<PropsType, {}> {
         key: 'battery_summary',
         render: (text: any, record: any) => {
           if (record['battery_summary'].length === 0) {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           }
           let batterySummaryList = record['battery_summary'].map((item: any) => (
             <li key={item['battery_num'].toString()}>
-              {item['battery_num'].toString() + ' - ' + this.riskSummaryToEnzh(item['summary'])}
+              {this.enzh(`Battery #${item['battery_num'].toString()} - ${this.riskSummaryToEnzh(item['summary'])}`,
+                `${item['battery_num'].toString()}号电芯 - ${this.riskSummaryToEnzh(item['summary'])}`)}
             </li>
           ));
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{batterySummaryList}</ul>);
@@ -108,11 +109,12 @@ class UploadDataTable extends React.Component<PropsType, {}> {
         key: 'battery_details',
         render: (text: any, record: any) => {
           if (record['battery_details'].length === 0) {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           }
           let batterydetailsList = record['battery_details'].map((item: any) => (
             <li key={item['battery_num'].toString()}>
-              {item['battery_num'].toString() + ' - ' + (this.props.language === 'en-us' ? item.detail : item.description)}
+              {this.enzh(`Battery #${item['battery_num'].toString()}`, `${item['battery_num'].toString()}号电芯`)
+                + ' - ' + (this.props.language === 'en-us' ? item.detail : item.description)}
             </li>
           ));
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{batterydetailsList}</ul>);

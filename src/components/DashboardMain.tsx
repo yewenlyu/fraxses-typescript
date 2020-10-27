@@ -3,7 +3,6 @@ import {
   PageHeader,
   Button,
   Descriptions,
-  Tag,
   Badge,
 } from 'antd';
 import {
@@ -51,20 +50,20 @@ class DashboardMain extends React.Component<PropsType> {
         <PageHeader
           ghost={false}
           title={this.enzh(this.props.tab, this.zhtab(this.props.tab))}
-          tags={<Tag color="orange">Admin</Tag>}
-          subTitle={
-            this.enzh(`Manage ${this.props.tab.split(' ')[0]} upload items`,
-              `管理${this.zhtab(this.props.tab).slice(0, this.zhtab(this.props.tab).length - 2)}数据`)
-          }
+          // tags={<Tag color="orange">Admin</Tag>}
+          // subTitle={
+          //   this.enzh(`Manage ${this.props.tab.split(' ')[0]} upload items`,
+          //     `管理${this.zhtab(this.props.tab).slice(0, this.zhtab(this.props.tab).length - 2)}数据`)
+          // }
           extra={[
-            <Button
-              key="upload-button"
-              type="primary"
-              shape="round"
-              icon={<ExportOutlined />}
-            >
-              {this.enzh("Export", "导出结果")}
-            </Button>,
+            // <Button
+            //   key="upload-button"
+            //   type="primary"
+            //   shape="round"
+            //   icon={<ExportOutlined />}
+            // >
+            //   {this.enzh("Export", "导出结果")}
+            // </Button>,
             <Badge dot
               key="notification-badge">
               <Button
@@ -78,14 +77,14 @@ class DashboardMain extends React.Component<PropsType> {
             padding: '0px 5px 15px'
           }}
         >
-          <Descriptions size="small" column={3} style={{ paddingTop: "3px" }}>
+          {/* <Descriptions size="small" column={3} style={{ paddingTop: "3px" }}>
             <Descriptions.Item label={this.enzh("Owner", "用户")}>
               {this.props.userInfo.name}
             </Descriptions.Item>
             <Descriptions.Item label={this.enzh("Affiliation", "编号")}>
               {this.props.userInfo.id}
             </Descriptions.Item>
-          </Descriptions>
+          </Descriptions> */}
         </PageHeader>
         <DashboardCharts
           language={this.props.language}

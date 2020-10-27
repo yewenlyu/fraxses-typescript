@@ -34,7 +34,7 @@ const EVSummaryChart = ({ language }: PropsType) => {
     data={data}
     angleField='value'
     colorField='type'
-    color={["#f62e38", "#fa8c16", "#2cc5cd", "#657798"]}
+    color={["#f62e38", "#fa8c16", "#7ed453", "#657798"]}
     radius={1}
     innerRadius={0.75}
     statistic={{

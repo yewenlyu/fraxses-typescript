@@ -50,7 +50,7 @@ class DashboardTables extends React.Component<PropsType, StateType> {
             />
           </TabPane>
 
-          <TabPane tab={this.enzh("Dataset Management", "批次数据管理")} key="file">
+          <TabPane tab={this.enzh("Dataset Management", "上传数据管理")} key="file">
             <UploadTable
               tab={this.props.tab}
               uploadDrawerControl={this.props.uploadDrawerControl}

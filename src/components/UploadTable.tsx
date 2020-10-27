@@ -70,7 +70,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
     }
 
     this.targetFileId = "";
-    this.pageSize = 7;
+    this.pageSize = 8;
   }
 
   resetState = () => {
@@ -298,7 +298,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
               (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
             ];
           } else if (record.state === 'uploading' || record.state === 'init') {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           } else {
             return [
               (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>),

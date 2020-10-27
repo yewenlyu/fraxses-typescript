@@ -66,7 +66,7 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
         key: 'ev_details',
         render: (text: any, record: any) => {
           if (record['ev_details'].length === 0) {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           }
           let evDetailsList = record['ev_details'].map((item: any) => (
             <li key={item.key}>{this.props.language === 'en-us' ? item.detail : item.description}</li>
@@ -80,11 +80,12 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
         key: 'battery_summary',
         render: (text: any, record: any) => {
           if (record['battery_summary'].length === 0) {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           }
           let batterySummaryList = record['battery_summary'].map((item: any) => (
             <li key={item['battery_num'].toString()}>
-              {item['battery_num'].toString() + ' - ' + this.riskSummaryToEnzh(item['summary'])}
+              {this.enzh(`Battery #${item['battery_num'].toString()} - ${this.riskSummaryToEnzh(item['summary'])}`,
+                `${item['battery_num'].toString()}号电芯 - ${this.riskSummaryToEnzh(item['summary'])}`)}
             </li>
           ));
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{batterySummaryList}</ul>);
@@ -96,11 +97,12 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
         key: 'battery_details',
         render: (text: any, record: any) => {
           if (record['battery_details'].length === 0) {
-            return (<span style={{ color: "#00000040" }}>-</span>);
+            return (<span>-</span>);
           }
           let batterydetailsList = record['battery_details'].map((item: any) => (
             <li key={item['battery_num'].toString()}>
-              {item['battery_num'].toString() + ' - ' + (this.props.language === 'en-us' ? item.detail : item.description)}
+              {this.enzh(`Battery #${item['battery_num'].toString()}`, `${item['battery_num'].toString()}号电芯`)
+                + ' - ' + (this.props.language === 'en-us' ? item.detail : item.description)}
             </li>
           ));
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{batterydetailsList}</ul>);
@@ -135,7 +137,7 @@ const evHistoryTableStaticData = [
   {
     result_number: 5,
     upload_time: "2020/08/03 10:08:08",
-    deliver_time: "2020/08/05 10:08:08", 
+    deliver_time: "2020/08/05 10:08:08",
     ev_summary: "high",
     ev_details: [
       {
@@ -175,7 +177,7 @@ const evHistoryTableStaticData = [
   {
     result_number: 4,
     upload_time: "2020/06/01 09:28:08",
-    deliver_time: "2020/06/03 23:01:19", 
+    deliver_time: "2020/06/03 23:01:19",
     ev_summary: "mid",
     ev_details: [
       {
@@ -201,7 +203,7 @@ const evHistoryTableStaticData = [
   {
     result_number: 3,
     upload_time: "2019/12/15 10:08:08",
-    deliver_time: "2019/12/18 08:18:47", 
+    deliver_time: "2019/12/18 08:18:47",
     ev_summary: "low",
     ev_details: [],
     battery_summary: [],
@@ -210,7 +212,7 @@ const evHistoryTableStaticData = [
   {
     result_number: 2,
     upload_time: "2019/08/08 14:34:32",
-    deliver_time: "2019/08/10 18:28:38", 
+    deliver_time: "2019/08/10 18:28:38",
     ev_summary: "low",
     ev_details: [],
     battery_summary: [],

@@ -174,7 +174,7 @@ class ItemTable extends React.Component<PropsType, StateType> {
         <Table
           size="middle"
           rowSelection={{}}
-          pagination={{ pageSize: 7 }}
+          pagination={{ pageSize: 8 }}
           columns={itemTableColumns}
           dataSource={itemStaticSource}
         />
