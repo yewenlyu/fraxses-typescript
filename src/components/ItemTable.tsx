@@ -61,7 +61,7 @@ class ItemTable extends React.Component<PropsType, StateType> {
         key: 'ev_id',
       },
       {
-        title: this.enzh("Upload Time", "最新上传时间"),
+        title: this.enzh("Upload Time", "上传时间"),
         dataIndex: 'ev_time',
         key: 'ev_time',
       },
@@ -87,7 +87,7 @@ class ItemTable extends React.Component<PropsType, StateType> {
         }
       },
       {
-        title: this.enzh("Analyze Summary", "风险结果"),
+        title: this.enzh("Analyze Summary", "风险状态"),
         dataIndex: 'ev_summary',
         key: 'ev_summary',
         render: (text: any, record: any) => {

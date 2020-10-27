@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Pie } from '@ant-design/charts';
 
 type PropsType = {

@@ -6,6 +6,7 @@ import {
   Menu,
   DatePicker,
   Tag,
+  Badge,
   Tooltip,
   Progress,
   Dropdown,
@@ -21,6 +22,7 @@ import {
 
 import { UploadStateType } from 'components/Dashboard';
 import AlgorithmController from 'components/AlgorithmController';
+import UploadDataTable from 'components/UploadDataTable';
 
 import * as APIUtils from 'utils/api-utils';
 
@@ -44,6 +46,7 @@ type StateType = {
   timeRange: TimeRangeType;
   refresh: boolean;
   algorithmModal: boolean;
+  uploadDataModal: boolean;
 }
 
 type TimeRangeType = [moment.Moment, moment.Moment];
@@ -62,7 +65,8 @@ class UploadTable extends React.Component<PropsType, StateType> {
       keyWord: "",
       timeRange: [moment.unix(0), moment.unix(0)],
       refresh: false,
-      algorithmModal: false
+      algorithmModal: false,
+      uploadDataModal: false
     }
 
     this.targetFileId = "";
@@ -140,6 +144,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
 
   /** Controller Functions */
   algorithmControl = (on: boolean) => this.setState({ algorithmModal: on });
+  uploadDataModalControl = (on: boolean) => this.setState({ uploadDataModal: on });
   timeRangeControl = (value: any) => this.setState({ timeRange: value });
   targetFileIdReset = () => this.targetFileId = "";
 
@@ -156,6 +161,14 @@ class UploadTable extends React.Component<PropsType, StateType> {
     this.targetFileId = selectedFile.id;
     this.setState({
       algorithmModal: true
+    });
+  }
+
+  handleViewUploadData = (e: any, fileId: string) => {
+    e.preventDefault();
+    this.targetFileId = fileId;
+    this.setState({
+      uploadDataModal: true
     });
   }
 
@@ -279,15 +292,82 @@ class UploadTable extends React.Component<PropsType, StateType> {
         key: 'x',
         render: (text: any, record: any) => {
           if (record.state === 'uploaded-raw') {
-            return (<a href="/#" onClick={e => { this.handleSelectAlgorithm(e, record.file_name) }}>{this.enzh("Select Algorithm", "选择算法")}</a>);
+            return [
+              (<a href="/#" onClick={e => { this.handleSelectAlgorithm(e, record.file_name) }}>{this.enzh("Start Analyzing", "开始分析")}</a>),
+              (<span>&nbsp;&nbsp;</span>),
+              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
+            ];
           } else if (record.state === 'uploading' || record.state === 'init') {
             return (<span style={{ color: "#00000040" }}>-</span>);
           } else {
-            return (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>);
+            return [
+              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>),
+              (<span>&nbsp;&nbsp;</span>),
+              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
+            ];
           }
         },
       },
     ];
+
+    const uploadTableStaticColumns = [
+      {
+        title: this.enzh('#', "编号"),
+        dataIndex: 'key',
+        key: 'key',
+      },
+      {
+        title: this.enzh('File Name', '数据名'),
+        dataIndex: 'upload_name',
+        key: 'file_name',
+      },
+      {
+        title: this.enzh('Upload Time', '上传时间'),
+        dataIndex: 'created_at',
+        key: 'created_at',
+      },
+      {
+        title: this.enzh('Status', '状态'),
+        dataIndex: 'state',
+        key: 'state',
+        render: (text: string, record: any) => {
+          switch (text) {
+            case 'uploaded':
+              return (
+                <Badge status="default" text={this.enzh("Pending Analyze", "待分析")} />
+              );
+            case 'analyzing':
+              return (
+                <Badge status="processing" text={this.enzh("Analyzing", "分析中")} />
+              );
+            case 'complete':
+              return (
+                <Badge status="success" text={this.enzh("Result Delivered", "分析完成")} />
+              );
+          }
+        }
+      },
+      {
+        title: this.enzh('Action', '可选操作'),
+        dataIndex: '',
+        key: 'x',
+        render: (text: any, record: any) => {
+          if (record.state === 'uploaded') {
+            return [
+              (<a href="/#" onClick={e => { this.handleSelectAlgorithm(e, record.file_name) }}>{this.enzh("Start Analyzing", "开始分析")}</a>),
+              (<span>&nbsp;&nbsp;</span>),
+              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
+            ];
+          } else {
+            return [
+              (<a href="/#" onClick={e => { this.handleViewUploadData(e, record["upload_name"]) }}>{this.enzh("View Result", "查看结果")}</a>),
+              (<span>&nbsp;&nbsp;</span>),
+              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
+            ];
+          }
+        },
+      },
+    ]
 
     return (
       <div className="UploadTable">
@@ -349,7 +429,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
           {this.enzh("Refresh / Clear Filter", "重置")}
         </Button>
 
-        <Table
+        {/* <Table
           size="middle"
           rowSelection={{}}
           pagination={{
@@ -360,6 +440,13 @@ class UploadTable extends React.Component<PropsType, StateType> {
           }}
           columns={fileTableColumns}
           dataSource={this.state.fileList}
+        /> */}
+        <Table
+          size="middle"
+          rowSelection={{}}
+          pagination={{ pageSize: 7 }}
+          columns={uploadTableStaticColumns}
+          dataSource={uploadTableStaticData}
         />
         {
           this.state.algorithmModal ?
@@ -369,9 +456,56 @@ class UploadTable extends React.Component<PropsType, StateType> {
               language={this.props.language}
             /> : null
         }
+        {
+          this.state.uploadDataModal ?
+            <UploadDataTable
+              fileId={this.targetFileId}
+              uploadDataModalControl={this.uploadDataModalControl}
+              language={this.props.language}
+            /> : null
+        }
       </div>
     );
   }
 }
 
 export default UploadTable;
+
+const uploadTableStaticData = [
+  {
+    key: 6,
+    upload_name: "Fova 数据共享第三批",
+    created_at: "2020/10/20 10:01:19",
+    state: "uploaded",
+  },
+  {
+    key: 5,
+    upload_name: "FOVA 数据共享第二批",
+    created_at: "2020/10/08 09:18:30",
+    state: "analyzing",
+  },
+  {
+    key: 4,
+    upload_name: "FOVA 数据共享",
+    created_at: "2020/09/30 15:24:20",
+    state: "analyzing",
+  },
+  {
+    key: 3,
+    upload_name: "fova-孚能科技数据",
+    created_at: "2020/09/09 14:14:09",
+    state: "complete",
+  },
+  {
+    key: 2,
+    upload_name: "fova-孚能科技数据test",
+    created_at: "2020/08/06 08:10:15",
+    state: "complete",
+  },
+  {
+    key: 1,
+    upload_name: "fova-孚能科技数据test",
+    created_at: "2020/08/05 10:08:08",
+    state: "complete",
+  }
+];

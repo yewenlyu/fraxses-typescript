@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'antd';
 
-import 'styles/dashboardTable.css';
+import 'styles/dashboardTables.css';
 
 import { UploadStateType } from 'components/Dashboard';
 
