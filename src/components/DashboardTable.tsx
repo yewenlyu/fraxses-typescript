@@ -11,9 +11,9 @@ import {
   DatePicker,
   Tooltip,
   Progress,
-  Tabs
+  Tabs,
+  Badge
 } from 'antd';
-
 import {
   CloudUploadOutlined,
   UnorderedListOutlined,
@@ -218,29 +218,38 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         key: 'ev_time',
       },
       {
-        title: this.enzh("Status", "最新上传状态"),
+        title: this.enzh("Analyze Status", "分析状态"),
         dataIndex: 'ev_status',
         key: 'ev_status',
         render: (text: string, record: any) => {
           switch (text) {
             case 'uploaded':
               return (
-                <Tag color="orange">
-                  {this.enzh("Pending Analyze", "待分析")}
-                </Tag>
+                <Badge status="default" text={this.enzh("Pending Analyze", "待分析")} />
               );
             case 'analyzing':
               return (
-                <Tag color="cyan">
-                  {this.enzh("Analyzing in Progress", "分析中")}
-                </Tag>
+                <Badge status="processing" text={this.enzh("Analyzing", "分析中")} />
               );
             case 'complete':
               return (
-                <Tag color="green">
-                  {this.enzh("Result Delivered", "分析完成")}
-                </Tag>
+                <Badge status="success" text={this.enzh("Result Delivered", "分析完成")} />
               );
+          }
+        }
+      },
+      {
+        title: this.enzh("Analyze Summary", "风险结果"),
+        dataIndex: 'ev_summary',
+        key: 'ev_summary',
+        render: (text: any, record: any) => {
+          switch (text) {
+            case 'low':
+              return (<Tag color="green">{this.enzh("Low Risk", "低风险")}</Tag>);
+            case 'mid':
+              return (<Tag color="orange">{this.enzh("Potential Risk", "中风险")}</Tag>);
+            case 'high':
+              return (<Tag color="red">{this.enzh("High Risk", "高风险")}</Tag>);
           }
         }
       },
@@ -251,11 +260,19 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         render: (text: any, record: any) => {
           switch (record["ev_status"]) {
             case 'uploaded':
-              return (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Start Analyze", "开始分析")}</a>);
+              return [
+                (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>),
+                (<span>&nbsp;&nbsp;</span>),
+                (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Start Analyze", "开始分析")}</a>),
+              ];
             case 'analyzing':
-              return (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Pause Analyze", "停止分析")}</a>);
+              return [
+                (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>),
+                (<span>&nbsp;&nbsp;</span>),
+                (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Pause Analyze", "停止分析")}</a>),
+              ];
             case 'complete':
-              return (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看结果")}</a>);
+              return (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>);
           }
         }
       },
@@ -365,7 +382,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
               onClick={() => this.props.uploadDrawerControl(true)}
             >
               {
-                this.state.fileList[0]?.state !== 'uploading' ?
+                this.state.fileList[0]?.state !== 'uploading' && !this.props.uploadState.inProgress ?
                   this.enzh("New Upload", "上传数据") :
                   this.enzh("Resume / New Upload", "新建/继续上传")
               }
@@ -433,7 +450,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
               onClick={() => this.props.uploadDrawerControl(true)}
             >
               {
-                this.state.fileList[0]?.state !== 'uploading' ?
+                this.state.fileList[0]?.state !== 'uploading' && !this.props.uploadState.inProgress ?
                   this.enzh("New Upload", "上传数据") :
                   this.enzh("Resume / New Upload", "新建/继续上传")
               }
@@ -495,7 +512,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         {
           this.state.algorithmModal ?
             <AlgorithmController
-              targetFileId={this.targetFileId}
+              fileId={this.targetFileId}
               algorithmControl={this.algorithmControl}
               language={this.props.language}
             /> : null
@@ -503,7 +520,7 @@ class DashboardTable extends React.Component<PropsType, StateType> {
         {
           this.state.historyTableModal ?
             <EVHistoryTable
-              itemName={this.targetItemId}
+              itemId={this.targetItemId}
               historyModalControl={this.historyModalControl}
               language={this.props.language}
             /> : null
@@ -519,55 +536,78 @@ const itemStaticSource = [
     ev_id: 'LNBSCU3H3JG358441',
     ev_time: '2020/10/21 22:24:20',
     ev_status: 'uploaded',
+    ev_summary: 'mid',
   },
   {
     key: 2,
     ev_id: 'LNBSCU3H5JR053043',
     ev_time: '2020/10/19 12:16:09',
     ev_status: 'analyzing',
+    ev_summary: 'high',
   },
   {
     key: 3,
     ev_id: 'LNBSCU3H7JR883782',
     ev_time: '2020/10/19 12:16:09',
     ev_status: 'analyzing',
+    ev_summary: 'high',
   },
   {
     key: 4,
     ev_id: 'LNBSCU3H5JG304574',
     ev_time: '2020/10/19 12:16:09',
-    ev_status: 'complete',
+    ev_status: 'analyzing',
+    ev_summary: 'low',
   },
   {
     key: 5,
     ev_id: 'LNBSCU3H8JR052114',
     ev_time: '2020/10/18 20:16:11',
-    ev_status: 'complete',
+    ev_status: 'analyzing',
+    ev_summary: 'low',
   },
   {
     key: 6,
     ev_id: 'LNBSCU3H2JR884774',
     ev_time: '2019/11/13 22:24:20',
     ev_status: 'complete',
+    ev_summary: 'low',
   },
   {
     key: 7,
     ev_id: 'LNBSCU3H8JR052114',
     ev_time: '2019/10/23 22:24:20',
     ev_status: 'complete',
+    ev_summary: 'low',
   },
   {
     key: 8,
     ev_id: 'LNBSCU3H2JG353098',
     ev_time: '2019/10/10 22:24:20',
     ev_status: 'complete',
+    ev_summary: 'low',
   },
   {
     key: 9,
     ev_id: 'LNBSCU3H8JR884729',
     ev_time: '2019/10/10 22:24:20',
     ev_status: 'complete',
-  }
+    ev_summary: 'low',
+  },
+  {
+    key: 9,
+    ev_id: 'LNBSCU3H8JR884729',
+    ev_time: '2019/10/10 22:24:20',
+    ev_status: 'complete',
+    ev_summary: 'low',
+  },
+  {
+    key: 9,
+    ev_id: 'LNBSCU3H8JR884729',
+    ev_time: '2019/10/10 22:24:20',
+    ev_status: 'complete',
+    ev_summary: 'low',
+  },
 ]
 
 export default DashboardTable;

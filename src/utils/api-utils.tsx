@@ -19,7 +19,7 @@ export type ErrorResponseDataType = {
 }
 
 type ResponseDataType = SuccessResponseDataType | ErrorResponseDataType;
-interface ParamsType { [key: string]: string | number };
+export interface ParamsType { [key: string]: string | number };
 
 /**
  * The only hard coded CSRF token, the rest should be extracted from cookies using parseCookies('csrf_token') after logging in

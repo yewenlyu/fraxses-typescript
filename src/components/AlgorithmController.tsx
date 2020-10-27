@@ -11,7 +11,7 @@ import * as APIUtils from 'utils/api-utils';
 const { Option } = Select;
 
 type PropsType = {
-  targetFileId: string;
+  fileId: string;
   algorithmControl: (on: boolean) => void;
   language: 'en-us' | 'zh-hans';
 }
@@ -32,7 +32,7 @@ class AlgorithmController extends React.Component<PropsType, StateType> {
 
   componentDidMount() {
     let requestParams = {
-      upload_id: this.props.targetFileId
+      upload_id: this.props.fileId
     }
     APIUtils.get('/api/data/algorithm/list', requestParams)
       .then(response => {
@@ -64,7 +64,7 @@ class AlgorithmController extends React.Component<PropsType, StateType> {
       return;
     }
     let requestBody = {
-      upload_id: this.props.targetFileId,
+      upload_id: this.props.fileId,
       algo_id: this.state.selectedAlgoId
     }
     APIUtils.post('/api/data/analysis/start', JSON.stringify(requestBody))
