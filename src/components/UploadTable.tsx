@@ -5,10 +5,10 @@ import {
   Table,
   Menu,
   DatePicker,
-  Tag,
+  // Tag,
   Badge,
-  Tooltip,
-  Progress,
+  // Tooltip,
+  // Progress,
   Dropdown,
   Popover,
   Input
@@ -210,105 +210,105 @@ class UploadTable extends React.Component<PropsType, StateType> {
       </div>
     );
 
-    let fileTableColumns = [
-      {
-        title: this.enzh('File Name', '数据名'),
-        dataIndex: 'upload_name',
-        key: 'file_name',
-      },
-      {
-        title: this.enzh('File Key', '数据编码'),
-        dataIndex: 'id',
-        key: 'id',
-      },
-      {
-        title: this.enzh('Upload Time', '上传时间'),
-        dataIndex: 'created_at',
-        key: 'created_at',
-        width: 400,
-        render: (text: number) => {
-          let current = new Date(text * 1000);
-          return <div>{current.toString().split(' ').splice(0, 6).join(' ')}</div>
-        }
-      },
-      {
-        title: this.enzh('Status', '状态'),
-        dataIndex: 'state',
-        key: 'state',
-        width: 275,
-        render: (text: string, record: any) => {
-          switch (text) {
-            case 'uploaded-raw':
-              return (
-                <Tag color="cyan">
-                  {this.enzh("Uploaded", "上传完成")}
-                </Tag>
-              );
-            case 'init':
-            case 'uploading':
-              if (this.props.uploadState.inProgress && record.upload_name === this.props.uploadState.fileName) {
-                return (
-                  <Tooltip title={
-                    this.enzh("View upload status", "查看详情")
-                  }>
-                    <div className="table-progress" onClick={() => this.props.uploadModalControl(true)}>
-                      <Progress
-                        percent={this.props.uploadState.progress}
-                        showInfo={!(this.props.uploadState.step === 1 && this.props.uploadState.progress === 100)}
-                        strokeColor={this.props.uploadState.step === 1 && this.props.uploadState.progress === 100 ? "#90ee90" : undefined}
-                        size="small"
-                        status={this.props.uploadState.error ? "exception" :
-                          (this.props.uploadState.step === 2 && this.props.uploadState.progress === 100 ? "success" : "active")}
-                      />
-                    </div>
-                  </Tooltip>
-                );
-              } else {
-                return (
-                  <Tooltip title={
-                    this.enzh(
-                      "To continue an unfinished upload, upload it again",
-                      "如果您想要继续未完成的上传，请再次上传该文件"
-                    )
-                  }>
-                    <Tag color="orange">
-                      {this.enzh("Upload Cancelled", "上传未完成")}
-                    </Tag>
-                  </Tooltip>
-                );
-              }
-            default:
-              return (
-                <Tag color="blue">
-                  {this.enzh("Complete", "分析完成")}
-                </Tag>
-              );
-          }
-        },
-      },
-      {
-        title: this.enzh('Action', '可选操作'),
-        dataIndex: '',
-        key: 'x',
-        render: (text: any, record: any) => {
-          if (record.state === 'uploaded-raw') {
-            return [
-              (<a href="/#" onClick={e => { this.handleSelectAlgorithm(e, record.file_name) }}>{this.enzh("Start Analyzing", "开始分析")}</a>),
-              (<span>&nbsp;&nbsp;</span>),
-              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
-            ];
-          } else if (record.state === 'uploading' || record.state === 'init') {
-            return (<span>-</span>);
-          } else {
-            return [
-              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>),
-              (<span>&nbsp;&nbsp;</span>),
-              (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
-            ];
-          }
-        },
-      },
-    ];
+    // let fileTableColumns = [
+    //   {
+    //     title: this.enzh('File Name', '数据名'),
+    //     dataIndex: 'upload_name',
+    //     key: 'file_name',
+    //   },
+    //   {
+    //     title: this.enzh('File Key', '数据编码'),
+    //     dataIndex: 'id',
+    //     key: 'id',
+    //   },
+    //   {
+    //     title: this.enzh('Upload Time', '上传时间'),
+    //     dataIndex: 'created_at',
+    //     key: 'created_at',
+    //     width: 400,
+    //     render: (text: number) => {
+    //       let current = new Date(text * 1000);
+    //       return <div>{current.toString().split(' ').splice(0, 6).join(' ')}</div>
+    //     }
+    //   },
+    //   {
+    //     title: this.enzh('Status', '状态'),
+    //     dataIndex: 'state',
+    //     key: 'state',
+    //     width: 275,
+    //     render: (text: string, record: any) => {
+    //       switch (text) {
+    //         case 'uploaded-raw':
+    //           return (
+    //             <Tag color="cyan">
+    //               {this.enzh("Uploaded", "上传完成")}
+    //             </Tag>
+    //           );
+    //         case 'init':
+    //         case 'uploading':
+    //           if (this.props.uploadState.inProgress && record.upload_name === this.props.uploadState.fileName) {
+    //             return (
+    //               <Tooltip title={
+    //                 this.enzh("View upload status", "查看详情")
+    //               }>
+    //                 <div className="table-progress" onClick={() => this.props.uploadModalControl(true)}>
+    //                   <Progress
+    //                     percent={this.props.uploadState.progress}
+    //                     showInfo={!(this.props.uploadState.step === 1 && this.props.uploadState.progress === 100)}
+    //                     strokeColor={this.props.uploadState.step === 1 && this.props.uploadState.progress === 100 ? "#90ee90" : undefined}
+    //                     size="small"
+    //                     status={this.props.uploadState.error ? "exception" :
+    //                       (this.props.uploadState.step === 2 && this.props.uploadState.progress === 100 ? "success" : "active")}
+    //                   />
+    //                 </div>
+    //               </Tooltip>
+    //             );
+    //           } else {
+    //             return (
+    //               <Tooltip title={
+    //                 this.enzh(
+    //                   "To continue an unfinished upload, upload it again",
+    //                   "如果您想要继续未完成的上传，请再次上传该文件"
+    //                 )
+    //               }>
+    //                 <Tag color="orange">
+    //                   {this.enzh("Upload Cancelled", "上传未完成")}
+    //                 </Tag>
+    //               </Tooltip>
+    //             );
+    //           }
+    //         default:
+    //           return (
+    //             <Tag color="blue">
+    //               {this.enzh("Complete", "分析完成")}
+    //             </Tag>
+    //           );
+    //       }
+    //     },
+    //   },
+    //   {
+    //     title: this.enzh('Action', '可选操作'),
+    //     dataIndex: '',
+    //     key: 'x',
+    //     render: (text: any, record: any) => {
+    //       if (record.state === 'uploaded-raw') {
+    //         return [
+    //           (<a href="/#" onClick={e => { this.handleSelectAlgorithm(e, record.file_name) }}>{this.enzh("Start Analyzing", "开始分析")}</a>),
+    //           (<span>&nbsp;&nbsp;</span>),
+    //           (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
+    //         ];
+    //       } else if (record.state === 'uploading' || record.state === 'init') {
+    //         return (<span>-</span>);
+    //       } else {
+    //         return [
+    //           (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("View Result", "查看结果")}</a>),
+    //           (<span>&nbsp;&nbsp;</span>),
+    //           (<a href="/#" onClick={e => { e.preventDefault() }}>{this.enzh("Download Source Data", "下载原始数据")}</a>)
+    //         ];
+    //       }
+    //     },
+    //   },
+    // ];
 
     const uploadTableStaticColumns = [
       {

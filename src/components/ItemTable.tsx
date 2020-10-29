@@ -102,6 +102,23 @@ class ItemTable extends React.Component<PropsType, StateType> {
         }
       },
       {
+        title: this.enzh("Risk Management", "风险处理状态"),
+        dataIndex: 'ev_risk_management',
+        key: 'ev_risk_management',
+        render: (text: any) => {
+          switch (text) {
+            case 'none':
+              return (<Tag color="green">{this.enzh("No Action Required", "无需处理")}</Tag>);
+            case 'pending':
+              return (<Tag color="orange">{this.enzh("Requires Attension", "待处理")}</Tag>);
+            case 'resolving':
+              return (<Tag color="cyan">{this.enzh("Resolve in Progress", "处理中")}</Tag>);
+            case 'resolved':
+              return (<Tag color="green">{this.enzh("Issue Resolved", "已处理")}</Tag>);
+          }
+        }
+      },
+      {
         title: this.enzh("Action", "可选操作"),
         dataIndex: '',
         key: 'x',
@@ -200,6 +217,7 @@ const itemStaticSource = [
     ev_time: '2020/10/21 22:24:20',
     ev_status: 'uploaded',
     ev_summary: 'mid',
+    ev_risk_management: 'resolving',
   },
   {
     key: 2,
@@ -207,6 +225,7 @@ const itemStaticSource = [
     ev_time: '2020/10/19 12:16:09',
     ev_status: 'analyzing',
     ev_summary: 'high',
+    ev_risk_management: 'resolved',
   },
   {
     key: 3,
@@ -214,61 +233,78 @@ const itemStaticSource = [
     ev_time: '2020/10/19 12:16:09',
     ev_status: 'analyzing',
     ev_summary: 'high',
+    ev_risk_management: 'pending',
   },
   {
     key: 4,
+    ev_id: 'LNBSCU3H9JR054258',
+    ev_time: '2020/10/19 12:16:09',
+    ev_status: 'analyzing',
+    ev_summary: 'mid',
+    ev_risk_management: 'pending',
+  },
+  {
+    key: 5,
     ev_id: 'LNBSCU3H5JG304574',
     ev_time: '2020/10/19 12:16:09',
     ev_status: 'analyzing',
     ev_summary: 'low',
-  },
-  {
-    key: 5,
-    ev_id: 'LNBSCU3H8JR052114',
-    ev_time: '2020/10/18 20:16:11',
-    ev_status: 'analyzing',
-    ev_summary: 'low',
+    ev_risk_management: 'none',
   },
   {
     key: 6,
+    ev_id: 'LNBSCU3H8JR052114',
+    ev_time: '2020/10/18 20:16:11',
+    ev_status: 'complete',
+    ev_summary: 'low',
+    ev_risk_management: 'none',
+  },
+  {
+    key: 7,
     ev_id: 'LNBSCU3H2JR884774',
     ev_time: '2019/11/13 22:24:20',
     ev_status: 'complete',
     ev_summary: 'low',
+    ev_risk_management: 'none',
   },
   {
-    key: 7,
+    key: 8,
     ev_id: 'LNBSCU3H8JR052114',
     ev_time: '2019/10/23 22:24:20',
     ev_status: 'complete',
     ev_summary: 'low',
+    ev_risk_management: 'none',
   },
   {
-    key: 8,
+    key: 9,
     ev_id: 'LNBSCU3H2JG353098',
     ev_time: '2019/10/10 22:24:20',
     ev_status: 'complete',
     ev_summary: 'low',
+    ev_risk_management: 'none',
   },
   {
-    key: 9,
+    key: 10,
     ev_id: 'LNBSCU3H8JR884729',
     ev_time: '2019/10/10 22:24:20',
     ev_status: 'complete',
     ev_summary: 'low',
+    ev_risk_management: 'none',
   },
   {
-    key: 9,
+    key: 11,
     ev_id: 'LNBSCU3H8JR884729',
     ev_time: '2019/10/10 22:24:20',
     ev_status: 'complete',
     ev_summary: 'low',
+    ev_risk_management: 'none',
   },
   {
-    key: 9,
+    key: 12,
     ev_id: 'LNBSCU3H8JR884729',
     ev_time: '2019/10/10 22:24:20',
     ev_status: 'complete',
     ev_summary: 'low',
+    ev_risk_management: 'none',
   },
 ]

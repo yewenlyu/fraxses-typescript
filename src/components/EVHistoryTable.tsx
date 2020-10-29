@@ -108,6 +108,37 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{batterydetailsList}</ul>);
         }
       },
+      {
+        title: this.enzh("Attachments", "附件"),
+        dataIndex: '',
+        key: 'attachments',
+        render: (text: any, record: any) => {
+          if (record['ev_details'].length === 0) {
+            return (<span>-</span>);
+          } else {
+            return (<a href="/#" onClick={e => e.preventDefault()}>
+              {this.enzh("Download Problematic Segment", "问题片段下载")}
+            </a>);
+          }
+        }
+      },
+      {
+        title: this.enzh("Risk Management", "风险处理状态"),
+        dataIndex: 'ev_risk_management',
+        key: 'ev_risk_management',
+        render: (text: any) => {
+          switch (text) {
+            case 'none':
+              return (<Tag color="green">{this.enzh("No Action Required", "无需处理")}</Tag>);
+            case 'pending':
+              return (<Tag color="orange">{this.enzh("Requires Attension", "待处理")}</Tag>);
+            case 'resolving':
+              return (<Tag color="cyan">{this.enzh("Resolve in Progress", "处理中")}</Tag>);
+            case 'resolved':
+              return (<Tag color="green">{this.enzh("Issue Resolved", "已处理")}</Tag>);
+          }
+        }
+      },
     ];
 
     return (
@@ -173,6 +204,7 @@ const evHistoryTableStaticData = [
         description: "机械衰老",
       },
     ],
+    ev_risk_management: "resolved",
   },
   {
     result_number: 4,
@@ -199,6 +231,7 @@ const evHistoryTableStaticData = [
         description: "SEI膜增厚",
       }
     ],
+    ev_risk_management: "resolved",
   },
   {
     result_number: 3,
@@ -208,6 +241,7 @@ const evHistoryTableStaticData = [
     ev_details: [],
     battery_summary: [],
     battery_details: [],
+    ev_risk_management: "none",
   },
   {
     result_number: 2,
@@ -217,6 +251,7 @@ const evHistoryTableStaticData = [
     ev_details: [],
     battery_summary: [],
     battery_details: [],
+    ev_risk_management: "none",
   },
   {
     result_number: 1,
@@ -226,5 +261,6 @@ const evHistoryTableStaticData = [
     ev_details: [],
     battery_summary: [],
     battery_details: [],
+    ev_risk_management: "none",
   },
 ]
