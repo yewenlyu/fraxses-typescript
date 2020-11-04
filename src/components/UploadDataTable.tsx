@@ -6,6 +6,12 @@ import {
   Badge
 } from 'antd';
 
+import {
+  CheckCircleTwoTone,
+  RightSquareTwoTone,
+  WarningTwoTone
+} from '@ant-design/icons';
+
 type PropsType = {
   fileId: string;
   uploadDataModalControl: (on: boolean) => void;
@@ -141,13 +147,13 @@ class UploadDataTable extends React.Component<PropsType, {}> {
         render: (text: any) => {
           switch (text) {
             case 'none':
-              return (<Tag color="green">{this.enzh("No Action Required", "无需处理")}</Tag>);
+              return (<span><CheckCircleTwoTone twoToneColor="#bababa"/>{this.enzh(" No Action Required", " 无需处理")}</span>);
             case 'pending':
-              return (<Tag color="orange">{this.enzh("Requires Attension", "待处理")}</Tag>);
+              return (<span><WarningTwoTone twoToneColor="#fa9629"/>{this.enzh(" Requires Attention", " 待处理")}</span>);
             case 'resolving':
-              return (<Tag color="cyan">{this.enzh("Resolve in Progress", "处理中")}</Tag>);
+              return (<span><RightSquareTwoTone twoToneColor="#1890ff"/>{this.enzh(" Resolve in Progress", " 处理中")}</span>);
             case 'resolved':
-              return (<Tag color="green">{this.enzh("Issue Resolved", "已处理")}</Tag>);
+              return (<span><CheckCircleTwoTone twoToneColor="#52c41a"/>{this.enzh(" Issue Resolved", " 已处理")}</span>);
           }
         }
       },
