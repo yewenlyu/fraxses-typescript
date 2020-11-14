@@ -1,6 +1,6 @@
 {
   "name": "fova-web",
-  "version": "0.5.0",
+  "version": "0.8.0",
   "author": "Wenlyu Ye",
   "private": true,
   "dependencies": {
@@ -46,9 +46,9 @@
       "not op_mini all"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "last 5 chrome version",
+      "last 5 firefox version",
+      "last 5 safari version"
     ]
   },
   "proxy": "http://fova-demo.eba-pm4k3uga.us-east-2.elasticbeanstalk.com"
