@@ -147,8 +147,8 @@ class UploadTable extends React.Component<PropsType, StateType> {
   timeRangeControl = (value: any) => this.setState({ timeRange: value });
   targetFileIdReset = () => this.targetFileId = "";
 
-  handlePaginationChange = (value: number) => {
-    this.setState({
+  handlePaginationChange = async (value: number) => {
+    await this.setState({
       pagination: value
     });
     this.getFileList();
