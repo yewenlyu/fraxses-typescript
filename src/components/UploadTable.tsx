@@ -44,6 +44,7 @@ type StateType = {
   keyWord: string;
   timeRange: TimeRangeType;
   refresh: boolean;
+  loading: boolean;
   algorithmModal: boolean;
   uploadDataModal: boolean;
 }
@@ -64,6 +65,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
       keyWord: "",
       timeRange: [moment.unix(0), moment.unix(0)],
       refresh: false,
+      loading: false,
       algorithmModal: false,
       uploadDataModal: false
     }
@@ -72,15 +74,12 @@ class UploadTable extends React.Component<PropsType, StateType> {
     this.pageSize = 8;
   }
 
-  resetState = () => {
-    this.setState({
-      pagination: 1,
-      keyWord: "",
-      timeRange: [moment.unix(0), moment.unix(0)]
-    });
-  }
+  getFileList = async () => {
 
-  getFileList = () => {
+    this.setState({
+      loading: true
+    });
+
     let requestParams: APIUtils.ParamsType = {
       product: APIUtils.ProductsInfo[this.props.tab].productName,
       page_num: this.state.pagination,
@@ -96,7 +95,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
       requestParams['end_time'] = this.state.timeRange[1].unix();
     }
 
-    APIUtils.get('/api/data/upload/list', requestParams)
+    await APIUtils.get('/api/data/upload/list', requestParams)
       .then(response => {
         if (response.code === 'OK') {
           // assign a unique key for each row of the table
@@ -113,11 +112,18 @@ class UploadTable extends React.Component<PropsType, StateType> {
           APIUtils.promptError(response.code, this.props.language);
         }
       });
+
+    this.setState({
+      loading: false
+    });
   }
 
   resetForm = () => {
-    this.resetState();
-    this.getFileList();
+    this.setState({
+      pagination: 1,
+      keyWord: "",
+      timeRange: [moment.unix(0), moment.unix(0)]
+    }, this.getFileList);
   }
 
   componentDidMount() {
@@ -148,10 +154,9 @@ class UploadTable extends React.Component<PropsType, StateType> {
   targetFileIdReset = () => this.targetFileId = "";
 
   handlePaginationChange = async (value: number) => {
-    await this.setState({
+    this.setState({
       pagination: value
-    });
-    this.getFileList();
+    }, this.getFileList);
   }
 
   handleSelectAlgorithm = (e: any, fileName: string) => {
@@ -171,12 +176,10 @@ class UploadTable extends React.Component<PropsType, StateType> {
     });
   }
 
-  handleSearch = (value: string) => {
+  handleSearch = async (value: string) => {
     this.setState({
       keyWord: value
-    });
-
-    this.getFileList();
+    }, this.getFileList);
   }
 
   enzh = (english: string, chinese: string): string =>
@@ -374,6 +377,7 @@ class UploadTable extends React.Component<PropsType, StateType> {
           }}
           columns={fileTableColumns}
           dataSource={this.state.fileList}
+          loading={this.state.loading}
         />
         {
           this.state.algorithmModal ?
