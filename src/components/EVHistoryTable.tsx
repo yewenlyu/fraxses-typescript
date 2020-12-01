@@ -38,7 +38,7 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
     let evHistoryTableColumns = [
       {
         title: this.enzh("Result Number", "分析序号"),
-        dataIndex: 'result_number',
+        dataIndex: 'key',
         key: 'result_number',
       },
       {
@@ -75,7 +75,7 @@ class EVHistoryTable extends React.Component<PropsType, {}> {
             return (<span>-</span>);
           }
           let evDetailsList = record['ev_details'].map((item: any) => (
-            <li key={item.key}>{this.props.language === 'en-us' ? item.detail : item.description}</li>
+            <li key={item['key']}>{this.props.language === 'en-us' ? item.detail : item.description}</li>
           ));
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{evDetailsList}</ul>);
         }
@@ -172,7 +172,7 @@ export default EVHistoryTable;
 
 const evHistoryTableStaticData = [
   {
-    result_number: 5,
+    key: 5,
     upload_time: "2020/08/03 10:08:08",
     deliver_time: "2020/08/05 10:08:08",
     ev_summary: "high",
@@ -213,7 +213,7 @@ const evHistoryTableStaticData = [
     ev_risk_management: "resolved",
   },
   {
-    result_number: 4,
+    key: 4,
     upload_time: "2020/06/01 09:28:08",
     deliver_time: "2020/06/03 23:01:19",
     ev_summary: "mid",
@@ -240,7 +240,7 @@ const evHistoryTableStaticData = [
     ev_risk_management: "resolved",
   },
   {
-    result_number: 3,
+    key: 3,
     upload_time: "2019/12/15 10:08:08",
     deliver_time: "2019/12/18 08:18:47",
     ev_summary: "low",
@@ -250,7 +250,7 @@ const evHistoryTableStaticData = [
     ev_risk_management: "none",
   },
   {
-    result_number: 2,
+    key: 2,
     upload_time: "2019/08/08 14:34:32",
     deliver_time: "2019/08/10 18:28:38",
     ev_summary: "low",
@@ -260,7 +260,7 @@ const evHistoryTableStaticData = [
     ev_risk_management: "none",
   },
   {
-    result_number: 1,
+    key: 1,
     upload_time: "2019/03/14 17:27:19",
     deliver_time: "2019/08/10 18:28:38",
     ev_summary: "low",

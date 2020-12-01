@@ -112,13 +112,13 @@ class ItemTable extends React.Component<PropsType, StateType> {
         render: (text: any) => {
           switch (text) {
             case 'none':
-              return (<span><CheckCircleTwoTone twoToneColor="#bababa"/>{this.enzh(" No Action Required", " 无需处理")}</span>);
+              return (<span><CheckCircleTwoTone twoToneColor="#bababa" />{this.enzh(" No Action Required", " 无需处理")}</span>);
             case 'pending':
-              return (<span><WarningTwoTone twoToneColor="#fa9629"/>{this.enzh(" Requires Attention", " 待处理")}</span>);
+              return (<span><WarningTwoTone twoToneColor="#fa9629" />{this.enzh(" Requires Attention", " 待处理")}</span>);
             case 'resolving':
-              return (<span><RightSquareTwoTone twoToneColor="#1890ff"/>{this.enzh(" Resolve in Progress", " 处理中")}</span>);
+              return (<span><RightSquareTwoTone twoToneColor="#1890ff" />{this.enzh(" Resolve in Progress", " 处理中")}</span>);
             case 'resolved':
-              return (<span><CheckCircleTwoTone twoToneColor="#52c41a"/>{this.enzh(" Issue Resolved", " 已处理")}</span>);
+              return (<span><CheckCircleTwoTone twoToneColor="#52c41a" />{this.enzh(" Issue Resolved", " 已处理")}</span>);
           }
         }
       },
@@ -129,17 +129,21 @@ class ItemTable extends React.Component<PropsType, StateType> {
         render: (text: any, record: any) => {
           switch (record["ev_status"]) {
             case 'uploaded':
-              return [
-                (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>),
-                (<span>&nbsp;&nbsp;</span>),
-                (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Start Analyze", "开始分析")}</a>),
-              ];
+              return (
+                <div>
+                  <a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>
+                  <span>&nbsp;&nbsp;</span>
+                  <a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Start Analyze", "开始分析")}</a>
+                </div>
+              );
             case 'analyzing':
-              return [
-                (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>),
-                (<span>&nbsp;&nbsp;</span>),
-                (<a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Pause Analyze", "停止分析")}</a>),
-              ];
+              return (
+                <div>
+                  <a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>
+                  <span>&nbsp;&nbsp;</span>
+                  <a href="/#" onClick={e => e.preventDefault()}>{this.enzh("Pause Analyze", "停止分析")}</a>
+                </div>
+              );
             case 'complete':
               return (<a href="/#" onClick={e => { this.handleSelectItem(e, record["ev_id"]) }}>{this.enzh("View Result", "查看详情")}</a>);
           }

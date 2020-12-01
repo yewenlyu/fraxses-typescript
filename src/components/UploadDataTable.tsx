@@ -87,7 +87,7 @@ class UploadDataTable extends React.Component<PropsType, {}> {
             return (<span>-</span>);
           }
           let evDetailsList = record['ev_details'].map((item: any) => (
-            <li key={item.key}>{this.props.language === 'en-us' ? item.detail : item.description}</li>
+            <li key={item['key']}>{this.props.language === 'en-us' ? item.detail : item.description}</li>
           ));
           return (<ul style={{ listStyle: "none", paddingLeft: 0 }}>{evDetailsList}</ul>);
         }
@@ -184,6 +184,7 @@ export default UploadDataTable;
 
 const uploadDataTableStaticData = [
   {
+    key: 1,
     ev_id: 'LNBSCU3H3JG358441',
     ev_status: 'complete',
     ev_summary: 'high',
@@ -224,6 +225,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'resolved',
   },
   {
+    key: 2,
     ev_id: 'LNBSCU3H5JR053043',
     ev_status: 'complete',
     ev_summary: 'high',
@@ -250,6 +252,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'resolved',
   },
   {
+    key: 3,
     ev_id: 'LNBSCU3H7JR883782',
     ev_status: 'complete',
     ev_summary: 'mid',
@@ -276,6 +279,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'pending',
   },
   {
+    key: 4,
     ev_id: 'LNBSCU3H5JG304574',
     ev_status: 'complete',
     ev_summary: 'mid',
@@ -302,6 +306,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'pending',
   },
   {
+    key: 5,
     ev_id: 'LNBSCU3H8JR052114',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -311,6 +316,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 6,
     ev_id: 'LNBSCU3H2JR884774',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -320,6 +326,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 7,
     ev_id: 'LNBSCU3H5JR053044',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -329,6 +336,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 8,
     ev_id: 'LNBSCU3H2JR874778',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -338,6 +346,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 9,
     ev_id: 'LNBSCU3H9JR054258',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -347,6 +356,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 10,
     ev_id: 'LNBSCU3H2JG353098',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -356,6 +366,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 11,
     ev_id: 'LNBSCU3H8JR884729',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -365,6 +376,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 12,
     ev_id: 'LNBSCU3H8JR884729',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -374,6 +386,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 13,
     ev_id: 'LNBSCU3H8JR884729',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -383,6 +396,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 14,
     ev_id: 'LNBSCU3H5JG352043',
     ev_status: 'complete',
     ev_summary: 'low',
@@ -392,6 +406,7 @@ const uploadDataTableStaticData = [
     ev_risk_management: 'none',
   },
   {
+    key: 15,
     ev_id: 'LNBSCU3H2JR884774',
     ev_status: 'complete',
     ev_summary: 'low',
