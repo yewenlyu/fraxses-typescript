@@ -24,7 +24,7 @@ import {
 import 'styles/uploadSession.css';
 
 import { UploadStateType } from "components/Dashboard";
-import UploadController from "components/UploadController";
+import AWSUploadController from "components/AWSUploadController";
 
 import * as APIUtils from 'utils/api-utils';
 
@@ -355,7 +355,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
         </div>
 
         { this.props.uploadInProgress ?
-          <UploadController
+          <AWSUploadController
             file={this.state.fileData}
             uploadName={this.state.uploadName}
             product={this.state.serviceType}

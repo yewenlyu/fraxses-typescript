@@ -31,7 +31,7 @@ type StateType = {
   errMessage: string;
 }
 
-class UploadController extends React.Component<PropsType, StateType> {
+class AWSUploadController extends React.Component<PropsType, StateType> {
 
   rawProgress: {
     completed: number;
@@ -589,7 +589,7 @@ class UploadController extends React.Component<PropsType, StateType> {
     }
 
     return (
-      <div className="UploadController">
+      <div className="AWSUploadController">
         <Modal
           visible={this.props.uploadModal}
           centered
@@ -633,4 +633,4 @@ class UploadController extends React.Component<PropsType, StateType> {
   }
 }
 
-export default UploadController;
+export default AWSUploadController;

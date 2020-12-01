@@ -27,7 +27,7 @@
     "typescript": "^3.7.5"
   },
   "devDependencies": {
-    "aws-sdk": "^2.750.0"
+    "aws-sdk": "^2.800.0"
   },
   "scripts": {
     "start": "react-scripts start",
