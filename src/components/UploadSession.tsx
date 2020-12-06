@@ -10,7 +10,7 @@ import {
   Switch,
   Upload,
   Modal,
-  Tooltip
+  // Tooltip
 } from "antd";
 import { FormInstance } from 'antd/lib/form';
 import { RcFile, UploadFile } from 'antd/lib/upload/interface';
@@ -18,7 +18,7 @@ import {
   InboxOutlined,
   CloudUploadOutlined,
   ExclamationCircleOutlined,
-  QuestionCircleOutlined
+  // QuestionCircleOutlined
 } from "@ant-design/icons";
 
 import 'styles/uploadSession.css';
@@ -323,7 +323,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                     </Upload.Dragger>
                   </Form.Item>
                 </Form.Item>
-                <Form.Item
+                {/* <Form.Item
                   name="parallel"
                   label={
                     <span>
@@ -341,7 +341,7 @@ class UploadSession extends React.Component<PropsType, StateType> {
                   valuePropName="checked"
                 >
                   <Switch defaultChecked onChange={this.setParallelUpload} />
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item
                   wrapperCol={{
                     span: 12,

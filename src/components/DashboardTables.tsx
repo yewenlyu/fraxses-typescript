@@ -30,7 +30,7 @@ class DashboardTables extends React.Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props);
     this.state = {
-      tableTab: 'item',
+      tableTab: 'file',
     }
   }
 

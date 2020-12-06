@@ -1,12 +1,11 @@
 import React from 'react';
-import AWS from 'aws-sdk';
+import OSS from 'ali-oss';
 import SparkMD5 from 'spark-md5';
 import {
   Button,
   Modal,
   Progress
 } from 'antd';
-
 import { UploadStateType } from "components/Dashboard";
 
 import * as APIUtils from 'utils/api-utils';
@@ -31,7 +30,7 @@ type StateType = {
   errMessage: string;
 }
 
-class AWSUploadController extends React.Component<PropsType, StateType> {
+class ALCUploadController extends React.Component<PropsType, StateType> {
 
   rawProgress: {
     completed: number;
@@ -64,7 +63,7 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
     let fileMD5 = await this.md5Hash(file);
     console.log("MD5 hash complete", fileMD5);
 
-    // Step 2 - Initialize S3 Client
+    // Step 2 - Initialize OSS Client
     let file_info = {
       file_key: fileMD5,
       file_name: file.name,
@@ -81,11 +80,9 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
       });
       return;
     }
-
-    let awsMetaData = (response as APIUtils.SuccessResponseDataType).data;
-    console.log("AWS metadata acquired", awsMetaData);
-
-    let s3Client = this.getS3Client(awsMetaData.authorization);
+    let ossMetaData = (response as APIUtils.SuccessResponseDataType).data;
+    console.log("ossMetaData retrieved", ossMetaData);
+    const ossClient = this.initializeOSSClient(ossMetaData);
 
     // Step 3 - Upload file
     let millisToMinAndSec = (millis: number): string => {
@@ -96,11 +93,7 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
 
     try {
       let startTime = performance.now();
-      if (this.props.parallelUpload) {
-        await this.parallelUploadFile(s3Client, awsMetaData, file, fileMD5);
-      } else {
-        await this.uploadFile(s3Client, awsMetaData, file, fileMD5)
-      }
+      await this.parallelUploadFile(ossClient, ossMetaData, file, fileMD5);
       let endTime = performance.now();
       console.warn("Elapsed time: " + millisToMinAndSec(endTime - startTime));
     } catch (err) {
@@ -176,273 +169,107 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
     })
   }
 
-  getS3Client = (cognitoIdentityCredentials: any): AWS.S3 => {
-    // let identity_provider = cognitoIdentityCredentials.identity_provider;
-    let credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: cognitoIdentityCredentials.identity_pool_id,
-      IdentityId: cognitoIdentityCredentials.identity_id,
-      Logins: {
-        // identity_provider: cognitoIdentityCredentials.token
-        'cognito-identity.amazonaws.com': cognitoIdentityCredentials.token
-      },
-    })
-
-    AWS.config.update({
-      credentials: credentials,
-      region: cognitoIdentityCredentials.region,
-    })
-
-    let s3 = new AWS.S3({
-      apiVersion: '2006-03-01',
-      maxRetries: 3,
-      httpOptions: {
-        connectTimeout: 1000 * 10,
-        timeout: 1000 * 60 * 10,
-      }
-    });
-
-    return s3;
-  }
-
-  uploadFile = async (s3Client: AWS.S3, awsMetaData: any, file: File, fileKey: string) => {
-
-    this.setState({ step: 1 });
-
-    let uploadConfig = {
-      Key: fileKey,
-      Bucket: awsMetaData.bucket,
-      UploadId: awsMetaData.remote_upload_id
+  initializeOSSClient = (ossMetaData: any): OSS => {
+    let ossConfig = {
+      region: ossMetaData['region'],
+      //region: 'oss-cn-hangzhou',
+      accessKeyId: ossMetaData['authorization']['access_key_id'],
+      accessKeySecret: ossMetaData['authorization']['access_key_secret'],
+      stsToken: ossMetaData['authorization']['security_token'],
+      bucket: ossMetaData['bucket']
     }
-    console.log("Upload configuration generated", uploadConfig);
-
-    let fullPartInfo = await this.uploadPart(s3Client, uploadConfig, awsMetaData.id, file, awsMetaData.parts);
-    console.log("Full part infomation generated", fullPartInfo);
-
-    let params = Object.assign({ 'MultipartUpload': fullPartInfo }, uploadConfig);
-    let result = await this.asyncS3Fetch(s3Client, 'completeMultipartUpload', params);
-    await this.completeUpload(awsMetaData.id, fileKey, result['ETag'], result['Location']);
-  }
-
-  uploadPart = async (s3: AWS.S3, config: any, fileId: string, file: File, uploadedParts: Array<any>) => {
-    return new Promise((resolve, reject) => {
-
-      let blobSlice = File.prototype.slice,
-        chunkSize = 5 * 1024 * 1024,
-        chunks = Math.ceil(file.size / chunkSize),
-        currentChunk = uploadedParts.length > 0 ? uploadedParts[uploadedParts.length - 1]['part_number'] : 0,
-        fileReader = new FileReader(),
-        completePartsInfo: { 'Parts': Array<any> } = {
-          'Parts': []
-        };
-
-      let loadNext = () => {
-        let start = currentChunk * chunkSize,
-          end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
-        fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
-      }
-
-      for (let part of uploadedParts) {
-        completePartsInfo['Parts'].push({
-          PartNumber: part['part_number'],
-          ETag: part['etag']
-        });
-      }
-
-      fileReader.onload = async (e: any) => {
-        if (currentChunk < chunks) {
-          let params = Object.assign({
-            Body: new Uint8Array(e.target.result),
-            PartNumber: currentChunk + 1,
-          }, config);
-
-          let response = await this.asyncS3Fetch(s3, 'uploadPart', params);
-
-          completePartsInfo['Parts'].push({
-            PartNumber: params['PartNumber'],
-            ETag: response.ETag
-          })
-
-          await this.recordPart(fileId, params['PartNumber'], response.ETag, params['Body'].length);
-
-          currentChunk++;
-          this.setState({
-            progress: parseFloat((currentChunk / chunks * 100).toFixed(2))
-          });
-
-          loadNext();
-        } else {
-          console.log('fileReader: Finished loading');
-          resolve(completePartsInfo)
-        }
-      };
-
-      fileReader.onerror = () => {
-        console.warn('fileReader: Something went wrong.');
-        this.setState({
-          err: true
-        });
-        reject();
-      };
-
-      fileReader.onabort = () => {
-        console.warn('fileReader: Abort.');
-        this.setState({
-          err: true
-        });
-        reject();
-      };
-
-      loadNext();
-    })
-  }
-
-  recordPart = async (fileId: string, partNumber: number, partETag: string, partSize: number, retries = 3) => {
-    let requestData = {
-      upload_id: fileId,
-      part_number: partNumber,
-      part_etag: partETag,
-      part_size: partSize
-    }
-
-    APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
-      .then(response => {
-        if (response.code === 'OK') {
-          return;
-        } else {
-          if (retries > 0) {
-            return this.recordPart(fileId, partNumber, partETag, partSize, retries - 1);
-          } else {
-            this.setState({
-              err: true,
-              errMessage: APIUtils.promptError(response.code, this.props.language)
-            });
-            throw new Error();
-          }
-        }
-      });
-  }
-
-  completeUpload = async (uploadId: string, fileKey: string, etag: string, location: string) => {
-    let requestData = {
-      upload_id: uploadId,
-      file_key: fileKey,
-      etag: etag,
-      location: location
-    }
-
-    return APIUtils.post('/api/data/multipart_upload/complete', JSON.stringify(requestData))
-      .then(response => {
-        if (response.code === 'OK') {
-          this.setState({
-            step: 2
-          });
-        } else {
-          this.setState({
-            err: true,
-            errMessage: APIUtils.promptError(response.code, this.props.language)
-          })
-        }
-      })
-  }
-
-  asyncS3Fetch = (s3: any, functionName: string, params: any, retries = 3): any => {
-    return new Promise((resolve, reject) => {
-      s3[functionName](params, (err: any, data: any) => {
-        if (err) {
-          console.warn("S3." + functionName, params, "error: ", err, "retries remain: " + retries);
-          if (retries > 0) {
-            resolve(this.asyncS3Fetch(s3, functionName, params, retries - 1));
-          } else {
-            this.setState({ err: true });
-            resolve(err);
-          }
-        }
-        else {
-          console.log("S3." + functionName, params, "data: ", data);
-          resolve(data);
-        }
-      })
-    });
+    console.log("OSS config generated", ossConfig);
+    return new OSS(ossConfig);
   }
 
   /**
    * The main routine of uploading a single file with multipart upload, Promise.all(promiseQueue)
    * waits for all upload part promise to resolve before calling the complete upload API. 
    * 
-   * @param s3Client    The AWS S3 client metadata
-   * @param awsMetaData The upload data returned by AWS
+   * @param ossClient   The Alibaba Cloud OSS Client
+   * @param ossMetaData The OSS Metadata returned from the server
    * @param file        File to be uploaded
    * @param fileKey     File key returned by MD5 hash
    */
-  parallelUploadFile = async (s3Client: AWS.S3, awsMetaData: any, file: File, fileKey: string) => {
-
+  parallelUploadFile = async (ossClient: OSS, ossMetaData: any, file: File, fileKey: string) => {
     this.setState({ step: 1 });
 
     let uploadConfig = {
       Key: fileKey,
-      Bucket: awsMetaData.bucket,
-      UploadId: awsMetaData.remote_upload_id
+      Bucket: ossMetaData['bucket'],
+      UploadId: ossMetaData['id'],                        // file id in fova
+      OutFileKey: ossMetaData['out_file_key'],            // file name in oss
+      RemoteUploadId: ossMetaData['remote_upload_id']     // file id in oss
     }
     console.log("Upload configuration generated", uploadConfig);
 
-    let completePartsInfo: { Parts: { PartNumber: number; ETag: string; }[] } = { 'Parts': [] };
+    let completePartsInfo: { number: number; etag: string; }[] = [];
     try {
-      let promiseQueue = await this.parallelUploadQueue(s3Client, uploadConfig, awsMetaData.id, file,
-        awsMetaData.parts, completePartsInfo);
+      let promiseQueue = await this.parallelUploadQueue(ossClient, file, uploadConfig, ossMetaData.parts, completePartsInfo);
       let newPartsInfo = await Promise.all(promiseQueue);
-      newPartsInfo.forEach(partInfo => { completePartsInfo['Parts'].push(partInfo) });
+      newPartsInfo.forEach(partInfo => { completePartsInfo.push(partInfo) });
     } catch (err) {
       this.setState({ err: true });
       console.warn(err);
       throw new Error(err);
     }
-    completePartsInfo.Parts.sort((a, b) => a.PartNumber - b.PartNumber);
+    completePartsInfo.sort((a, b) => a.number - b.number);
     console.log("Upload complete, complete part infomarions available: ", completePartsInfo);
 
-    let params = Object.assign({ 'MultipartUpload': completePartsInfo }, uploadConfig);
-    let result = await this.asyncS3Fetch(s3Client, 'completeMultipartUpload', params);
-    await this.completeUpload(awsMetaData.id, fileKey, result['ETag'], result['Location']);
+    try {
+      let response = await ossClient.completeMultipartUpload(
+        ossMetaData['out_file_key'],
+        ossMetaData['remote_upload_id'],
+        completePartsInfo
+      );
+      await this.completeUpload(ossMetaData['id'], fileKey, response.etag);
+    } catch (err) {
+      this.setState({ err: true });
+      console.warn(err);
+      throw new Error(err);
+    }
   }
 
   /**
    * This function devides the file into chunk, calls uploadpart on each chunck asynchronously, 
    * while pushing the returned unresolved promise into an array, returns a promise wrapping that array.
    * 
-   * @param s3Client            The AWS S3 Client
+   * @param ossClient           The Alibaba Cloud OSS Client
    * @param uploadConfig        The base configuration for uploading part
-   * @param fileId              File Id returned by AWS
    * @param file                File to be uploaded
-   * @param uploadedParts       The uploaded part in previous upload sessions returned by AWS client
+   * @param uploadedParts       The uploaded part in previous upload sessions returned by OSS client
    * @param completePartsInfo   The complete part info to be passed to complete upload API
    * @returns                   A promise which resolves to an array of pending promises
    */
   parallelUploadQueue = async (
-    s3Client: AWS.S3,
-    uploadConfig: { Key: string; Bucket: string; UploadId: string; },
-    fileId: string,
+    ossClient: OSS,
     file: File,
+    uploadConfig: { Key: string; Bucket: string; OutFileKey: string; UploadId: string; RemoteUploadId: string; },
     uploadedParts: Array<{ part_number: number; etag: string; }>,
-    completePartsInfo: { Parts: Array<{ PartNumber: number; ETag: string; }> }
-  ): Promise<Array<Promise<{ PartNumber: number; ETag: string; }>>> => {
+    completePartsInfo: Array<{ number: number; etag: string; }>
+  ): Promise<Array<Promise<{ number: number, etag: string; }>>> => {
 
     return new Promise((resolve, reject) => {
+
       let blobSlice = File.prototype.slice,
         chunkSize = 5 * 1024 * 1024,
         chunks = Math.ceil(file.size / chunkSize),
         currentChunk = 0,
-        fileReader = new FileReader();
+        fileReader = new FileReader(),
+        start = 0,
+        end = 0;
 
       let uploadedPartsSet: Set<number> = new Set();
 
       let promiseQueue: Array<Promise<{
-        PartNumber: number;
-        ETag: string;
+        number: number;
+        etag: string;
       }>> = [];
 
       for (let part of uploadedParts) {
-        completePartsInfo['Parts'].push({
-          PartNumber: part['part_number'],
-          ETag: part['etag']
+        completePartsInfo.push({
+          number: part['part_number'],
+          etag: part['etag']
         });
         uploadedPartsSet.add(part['part_number'] - 1);
       }
@@ -454,8 +281,8 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
         while (uploadedPartsSet.has(currentChunk)) {
           currentChunk++;
         }
-        let start = currentChunk * chunkSize,
-          end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+        start = currentChunk * chunkSize;
+        end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
         fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
       }
 
@@ -463,12 +290,15 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
 
       fileReader.onload = (e: any) => {
         if (currentChunk < chunks) {
-          let uploadPartConfig = Object.assign({
-            Body: new Uint8Array(e.target.result),
+          let uploadPartConfig = {
             PartNumber: currentChunk + 1,
-          }, uploadConfig);
-
-          promiseQueue.push(this.parallelUploadPart(s3Client, fileId, uploadPartConfig));
+            Start: start,
+            End: end,
+            Bucket: uploadConfig.Bucket,
+            OutFileKey: uploadConfig.OutFileKey,
+            RemoteUploadId: uploadConfig.RemoteUploadId
+          }
+          promiseQueue.push(this.parallelUploadPart(ossClient, file, uploadConfig.UploadId, uploadPartConfig));
 
           currentChunk++;
           loadNext();
@@ -498,28 +328,97 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
   }
 
   /**
-   * This function takes a part of file, call s3.uploadPart and add_part API sequentially, then returns
-   * a promise containing part infomations, this promise is pushed to the promise array immediately,
+   * This function takes a part of file, call ossClient.uploadPart and add_part API sequentially,
+   * then returnsa promise containing part infomations, this promise is pushed to the promise array immediately,
    * when called by this.parallelUploadQueue.
    * 
-   * @param s3Client          The AWS S3 client
-   * @param fileId            File Id returned by AWS, used for add_part API
+   * @param ossClient         The Alibaba Cloud OSS Client
+   * @param outFileKey        File name show in oss
+   * @param uploadId          File id in fova
+   * @param file              The complete file to be uploaded
    * @param uploadPartConfig  Part upload configurations contains the file data of the current part
    * @returns                 A promise resolves to part infomations
    */
-  parallelUploadPart = async (s3Client: AWS.S3, fileId: string, uploadPartConfig: any): Promise<{ PartNumber: number, ETag: string; }> => {
+  parallelUploadPart = async (
+    ossClient: OSS,
+    file: File,
+    uploadId: string,
+    uploadPartConfig: {
+      PartNumber: number;
+      Start: number;
+      End: number;
+      Bucket: string;
+      OutFileKey: string;
+      RemoteUploadId: string;
+    }
+  ): Promise<{ number: number, etag: string; }> => {
+
     try {
-      let response = await this.asyncS3Fetch(s3Client, 'uploadPart', uploadPartConfig);
-      await this.recordPart(fileId, uploadPartConfig['PartNumber'], response.ETag, uploadPartConfig['Body'].length);
+      let response = await ossClient.uploadPart(
+        uploadPartConfig.OutFileKey,
+        uploadPartConfig.RemoteUploadId,
+        uploadPartConfig.PartNumber,
+        file,
+        uploadPartConfig.Start,
+        uploadPartConfig.End,
+      );
+      await this.recordPart(
+        uploadId,
+        uploadPartConfig.PartNumber,
+        response.etag,
+        uploadPartConfig.End - uploadPartConfig.Start
+      );
 
       this.rawProgress.completed++;
       this.setState({ progress: parseFloat((this.rawProgress.completed / this.rawProgress.total * 100).toFixed(2)) })
 
-      return { PartNumber: uploadPartConfig['PartNumber'], ETag: response.ETag }
+      return { number: uploadPartConfig.PartNumber, etag: response.etag };
     } catch (err) {
       console.warn(err);
       throw new Error(err);
     }
+  }
+
+  recordPart = async (fileId: string, partNumber: number, partETag: string, partSize: number) => {
+    let requestData = {
+      upload_id: fileId,
+      part_number: partNumber,
+      part_etag: partETag,
+      part_size: partSize
+    }
+
+    APIUtils.post('/api/data/multipart_upload/add_part', JSON.stringify(requestData))
+      .then(response => {
+        if (response.code !== 'OK') {
+          this.setState({
+            err: true,
+            errMessage: APIUtils.promptError(response.code, this.props.language)
+          });
+          throw new Error();
+        }
+      });
+  }
+
+  completeUpload = async (uploadId: string, fileKey: string, etag: string) => {
+    let requestData = {
+      upload_id: uploadId,
+      file_key: fileKey,
+      etag: etag
+    }
+
+    return APIUtils.post('/api/data/multipart_upload/complete', JSON.stringify(requestData))
+      .then(response => {
+        if (response.code === 'OK') {
+          this.setState({
+            step: 2
+          });
+        } else {
+          this.setState({
+            err: true,
+            errMessage: APIUtils.promptError(response.code, this.props.language)
+          })
+        }
+      })
   }
 
   handleClose = () => {
@@ -541,7 +440,7 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
         return (<p>{this.enzh("Upload Error, please retry or contact us. ", "上传失败，请重试或联系管理员。")}</p>);
       }
       if (this.state.step === 0) {
-        return (<p>{this.enzh(`Processing File... ${this.state.progress}%`, `正在加密文件... ${this.state.progress}%`)}</p>);
+        return (<p>{this.enzh(`Encoding File... ${this.state.progress}%`, `正在加密文件... ${this.state.progress}%`)}</p>);
       }
       if (this.state.step === 1) {
         if (this.state.progress === 100) {
@@ -596,7 +495,7 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
     }
 
     return (
-      <div className="AWSUploadController">
+      <div className="ALCUploadController">
         <Modal
           visible={this.props.uploadModal}
           centered
@@ -640,4 +539,4 @@ class AWSUploadController extends React.Component<PropsType, StateType> {
   }
 }
 
-export default AWSUploadController;
+export default ALCUploadController;
